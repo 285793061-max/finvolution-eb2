@@ -9,8 +9,8 @@ from .routers import analysis
 # 获取静态文件目录
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
-# 舆情数据库 - 使用当前项目的数据目录
-DB_PATH = os.path.join(BASE_DIR, "data", "sentiment.db")
+# 舆情数据库 - 使用环境变量或当前项目的数据目录
+DB_PATH = os.getenv("SENTIMENT_DB_PATH") or os.path.join(BASE_DIR, "data", "sentiment.db")
 # 内容分析数据库
 CONTENT_DB_PATH = os.path.join(BASE_DIR, "data", "content.db")
 
@@ -171,13 +171,16 @@ def init_sentiment_db_from_json():
     import sqlite3
     import json
 
+    # 使用环境变量指定的路径，或者默认路径
+    db_path = os.getenv("SENTIMENT_DB_PATH", DB_PATH)
     json_path = os.path.join(BASE_DIR, "data", "sentiment_data.json")
     if not os.path.exists(json_path):
+        print(f"JSON文件不存在: {json_path}")
         return
 
     # 如果数据库已存在且有数据，跳过
-    if os.path.exists(DB_PATH):
-        conn = sqlite3.connect(DB_PATH)
+    if os.path.exists(db_path):
+        conn = sqlite3.connect(db_path)
         cur = conn.cursor()
         try:
             cur.execute("SELECT COUNT(*) FROM sentiment_data")
@@ -194,7 +197,7 @@ def init_sentiment_db_from_json():
         data = json.load(f)
 
     # 创建数据库和表
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(db_path)
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS sentiment_data (
