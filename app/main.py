@@ -166,6 +166,90 @@ PLATFORM_METRICS = {
 PLATFORM_LIST = ["公众号", "视频号", "领英", "小红书", "B站"]
 
 
+def init_sentiment_db_from_json():
+    """从JSON文件初始化情感数据库"""
+    import sqlite3
+    import json
+
+    json_path = os.path.join(BASE_DIR, "data", "sentiment_data.json")
+    if not os.path.exists(json_path):
+        return
+
+    # 如果数据库已存在且有数据，跳过
+    if os.path.exists(DB_PATH):
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT COUNT(*) FROM sentiment_data")
+            count = cur.fetchone()[0]
+            if count > 0:
+                conn.close()
+                return
+        except:
+            pass
+        conn.close()
+
+    # 从JSON加载数据
+    with open(json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    # 创建数据库和表
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS sentiment_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            platform TEXT NOT NULL,
+            title TEXT,
+            content TEXT NOT NULL,
+            author TEXT,
+            publish_time TEXT,
+            likes INTEGER DEFAULT 0,
+            comments INTEGER DEFAULT 0,
+            shares INTEGER DEFAULT 0,
+            views INTEGER DEFAULT 0,
+            url TEXT,
+            sentiment_score REAL,
+            sentiment_label TEXT,
+            sentiment_confidence REAL,
+            keywords TEXT,
+            crawl_time TEXT NOT NULL,
+            metadata TEXT,
+            category TEXT,
+            source_type TEXT DEFAULT 'external',
+            is_ad INTEGER DEFAULT 0,
+            is_reviewed INTEGER DEFAULT 0,
+            image TEXT,
+            comments_text TEXT
+        )
+    """)
+
+    for item in data:
+        cur.execute("""
+            INSERT INTO sentiment_data (
+                platform, title, content, author, publish_time,
+                likes, comments, shares, views, url,
+                sentiment_score, sentiment_label, sentiment_confidence,
+                keywords, crawl_time, metadata, category,
+                source_type, is_ad, is_reviewed, image, comments_text
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            item.get('platform'), item.get('title'), item.get('content'),
+            item.get('author'), item.get('publish_time'),
+            item.get('likes', 0), item.get('comments', 0), item.get('shares', 0),
+            item.get('views', 0), item.get('url'),
+            item.get('sentiment_score'), item.get('sentiment_label'),
+            item.get('sentiment_confidence'), item.get('keywords'),
+            item.get('crawl_time'), item.get('metadata'), item.get('category'),
+            item.get('source_type', 'external'), item.get('is_ad', 0),
+            item.get('is_reviewed', 0), item.get('image'), item.get('comments_text')
+        ))
+
+    conn.commit()
+    conn.close()
+    print(f"从JSON加载了 {len(data)} 条数据到数据库")
+
+
 def get_stats():
     """统计数据"""
     if not os.path.exists(DB_PATH):
@@ -243,6 +327,7 @@ def create_app() -> FastAPI:
     init_qa_db()
     init_articles_db()
     init_projects_db()
+    init_sentiment_db_from_json()
 
     app.include_router(analysis.router)
     from .routers import content_gen
