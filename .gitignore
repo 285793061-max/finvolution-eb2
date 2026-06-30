@@ -23,6 +23,7 @@ ENV/
 *.db-journal
 data/*.json
 !data/sample*.json
+!data/sentiment_data.json
 
 # Logs
 *.log
