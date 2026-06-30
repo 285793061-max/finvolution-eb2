@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>竞品招聘调研 - 雇主品牌管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #050510;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-effects {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+            background: linear-gradient(180deg, #050508 0%, #080810 100%);
+        }
+        .ripple-layer { position: absolute; width: 100%; height: 100%; overflow: hidden; }
+        .ripple-circle {
+            position: absolute; top: 50%; left: 50%;
+            border-radius: 50%; border: 1px solid rgba(0,212,255,0.12);
+            animation: rippleExpand 10s ease-out infinite;
+        }
+        .ripple-circle:nth-of-type(1) { animation-delay: 0s; }
+        .ripple-circle:nth-of-type(2) { animation-delay: -2.5s; }
+        .ripple-circle:nth-of-type(3) { animation-delay: -5s; }
+        @keyframes rippleExpand {
+            0% { width: 0; height: 0; margin-left: 0; margin-top: 0; opacity: 0.5; }
+            50% { opacity: 0.25; }
+            100% { width: 150vmax; height: 150vmax; margin-left: -75vmax; margin-top: -75vmax; opacity: 0; }
+        }
+
+        .header {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            background: rgba(10, 10, 20, 0.75);
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(0,212,255,0.15);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .back-btn {
+            background: rgba(0,212,255,0.15);
+            border: 1px solid rgba(0,212,255,0.35);
+            color: #00d4ff; padding: 8px 14px;
+            border-radius: 12px; cursor: pointer; font-size: 12px;
+        }
+        .logo {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2, #00d4ff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .content {
+            padding: 80px 20px 100px;
+            position: relative; z-index: 1;
+        }
+
+        .page-title {
+            font-size: 24px; font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        .page-desc { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 24px; }
+
+        .card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0,212,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 16px; font-weight: 600;
+            color: #00d4ff; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+        .form-group { flex: 1; margin-bottom: 12px; }
+        .form-group label {
+            display: block; font-size: 12px;
+            color: rgba(255,255,255,0.7); margin-bottom: 6px;
+        }
+        input, select {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            color: #fff;
+            border: 1px solid rgba(0,212,255,0.2);
+            padding: 12px; border-radius: 10px; font-size: 14px;
+        }
+        input:focus, select:focus {
+            border-color: rgba(0,212,255,0.5);
+            outline: none;
+        }
+        select option { background: #1a1a2e; }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            color: #fff;
+        }
+        .btn-primary:hover { box-shadow: 0 5px 20px rgba(0,212,255,0.3); }
+        .btn-secondary {
+            background: rgba(0,212,255,0.15);
+            border: 1px solid rgba(0,212,255,0.3);
+            color: #00d4ff;
+        }
+        .btn-danger {
+            background: rgba(255,77,79,0.15);
+            border: 1px solid rgba(255,77,79,0.3);
+            color: #ff4d4f;
+        }
+
+        .company-list { display: flex; flex-direction: column; gap: 10px; }
+        .company-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .company-info { flex: 1; }
+        .company-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .company-meta { font-size: 12px; color: rgba(255,255,255,0.5); }
+        .company-jobs { font-size: 12px; color: #00d4ff; }
+
+        .job-list { display: flex; flex-direction: column; gap: 8px; }
+        .job-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .job-title { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+        .job-meta { font-size: 12px; color: rgba(255,255,255,0.5); display: flex; flex-wrap: wrap; gap: 8px; }
+        .job-tag {
+            background: rgba(0,212,255,0.1);
+            border: 1px solid rgba(0,212,255,0.2);
+            color: #00d4ff;
+            padding: 2px 8px; border-radius: 4px; font-size: 11px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .stat-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-val {
+            font-size: 28px; font-weight: 700;
+            color: #00d4ff; margin-bottom: 4px;
+        }
+        .stat-lbl { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0,212,255,0.15);
+            color: rgba(255,255,255,0.6);
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(138,43,226,0.2));
+            border-color: rgba(0,212,255,0.4);
+            color: #00d4ff;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.4);
+            font-size: 14px;
+        }
+
+        .toast {
+            position: fixed; top: 80px; left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(20,20,35,0.95);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 14px; color: #00d4ff;
+            opacity: 0; transition: all 0.3s; z-index: 1000;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: none; align-items: center; justify-content: center;
+            z-index: 200;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: rgba(20,20,35,0.98);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 20px; padding: 24px;
+            max-width: 500px; width: 90%;
+        }
+        .modal-title { font-size: 18px; font-weight: 600; color: #00d4ff; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="bg-effects">
+        <div class="ripple-layer">
+            <div class="ripple-circle"></div>
+            <div class="ripple-circle"></div>
+            <div class="ripple-circle"></div>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="header-left">
+            <button class="back-btn" onclick="goBack()">← 返回</button>
+        </div>
+        <div class="logo">竞品招聘调研</div>
+        <div style="width:80px;"></div>
+    </header>
+
+    <main class="content">
+        <h1 class="page-title">竞品招聘调研</h1>
+        <p class="page-desc">调研竞品公司招聘动态，了解市场人才竞争力</p>
+
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">📊 概览</button>
+            <button class="tab-btn" data-tab="companies" onclick="switchTab('companies')">🏢 公司</button>
+            <button class="tab-btn" data-tab="jobs" onclick="switchTab('jobs')">💼 职位</button>
+            <button class="tab-btn" data-tab="salary" onclick="switchTab('salary')">💰 薪资</button>
+            <button class="tab-btn" data-tab="screenshot" onclick="switchTab('screenshot')">📸 截图采集</button>
+        </div>
+
+        <!-- 概览 -->
+        <div id="overview-tab" class="tab-content">
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-val" id="stat-companies">0</div>
+                    <div class="stat-lbl">竞品公司</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="stat-jobs">0</div>
+                    <div class="stat-lbl">职位总数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="stat-avg-salary">-</div>
+                    <div class="stat-lbl">平均薪资</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="stat-update">-</div>
+                    <div class="stat-lbl">最近更新</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:16px;">
+                <div class="card-title">📈 竞品对比</div>
+                <div class="company-list" id="comparison-list">
+                    <div class="empty">加载中...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 公司 -->
+        <div id="companies-tab" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="card-title">➕ 添加竞品公司</div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:2;">
+                        <label>公司名称</label>
+                        <input type="text" id="company-name" placeholder="如：360金融">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>行业</label>
+                        <input type="text" id="company-industry" placeholder="如：金融科技">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addCompany()" style="width:100%;">添加公司</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🏢 竞品公司列表</div>
+                <div class="company-list" id="company-list">
+                    <div class="empty">暂无公司，请先添加</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 职位 -->
+        <div id="jobs-tab" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="card-title">➕ 添加职位</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>公司</label>
+                        <select id="job-company"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>职位名称</label>
+                        <input type="text" id="job-title" placeholder="如：高级Java工程师">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>薪资范围</label>
+                        <input type="text" id="job-salary" placeholder="如：25K-40K">
+                    </div>
+                    <div class="form-group">
+                        <label>工作地点</label>
+                        <input type="text" id="job-location" placeholder="如：上海">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>经验要求</label>
+                        <input type="text" id="job-experience" placeholder="如：3-5年">
+                    </div>
+                    <div class="form-group">
+                        <label>学历要求</label>
+                        <select id="job-education">
+                            <option value="">不限</option>
+                            <option value="本科">本科</option>
+                            <option value="硕士">硕士</option>
+                            <option value="博士">博士</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:2;">
+                        <label>职位链接</label>
+                        <input type="text" id="job-url" placeholder="https://...">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>来源</label>
+                        <select id="job-source">
+                            <option value="manual">手动录入</option>
+                            <option value="mokahr">脉脉</option>
+                            <option value="boss">BOSS</option>
+                            <option value="lagou">拉勾</option>
+                            <option value="51job">51Job</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addJob()" style="width:100%;">添加职位</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">💼 职位列表</div>
+                <div style="margin-bottom:12px;">
+                    <input type="text" id="job-search" placeholder="搜索职位..." oninput="searchJobs()">
+                </div>
+                <div class="job-list" id="job-list">
+                    <div class="empty">暂无职位，请先添加</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 薪资 -->
+        <div id="salary-tab" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="card-title">💰 薪资统计</div>
+                <div class="job-list" id="salary-list">
+                    <div class="empty">暂无薪资数据</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 截图采集 -->
+        <div id="screenshot-tab" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="card-title">📸 截图采集竞品职位</div>
+                <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:16px;">
+                    1. 在浏览器中打开竞品招聘页面<br>
+                    2. 将职位列表区域完整显示在屏幕上<br>
+                    3. 截图并上传（支持多张）
+                </p>
+                <div style="border:2px dashed rgba(0,212,255,0.3);border-radius:12px;padding:24px;text-align:center;margin-bottom:16px;">
+                    <input type="file" id="screenshot-input" accept="image/*" multiple style="display:none;" onchange="handleScreenshotUpload(this.files)">
+                    <button class="btn btn-secondary" onclick="document.getElementById('screenshot-input').click()" style="width:100%;">
+                        📁 选择截图文件
+                    </button>
+                    <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px;">支持 PNG、JPG 格式，可多选</p>
+                </div>
+                <div id="screenshot-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
+                <div id="screenshot-results" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📋 手动校准区域（可选）</div>
+                <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;">
+                    如果OCR识别不准确，可以先校准屏幕区域后再截图采集。
+                </p>
+                <div style="display:flex;gap:12px;">
+                    <button class="btn btn-secondary" onclick="showCalibrateHelp()" style="flex:1;">📐 查看校准说明</button>
+                    <button class="btn btn-secondary" onclick="openCalibrateScript()" style="flex:1;">🔧 运行校准脚本</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentTab = 'overview';
+
+        function goBack() {
+            window.location.href = '/static/main.html?t=' + Date.now();
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = content.id === tab + '-tab' ? 'block' : 'none';
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        async function loadOverview() {
+            try {
+                const resp = await fetch('/api/competitor/comparison');
+                const data = await resp.json();
+
+                document.getElementById('stat-companies').textContent = data.length || 0;
+
+                let totalJobs = 0;
+                let latestUpdate = '-';
+                data.forEach(c => {
+                    totalJobs += c.job_count || 0;
+                    if (c.last_update && c.last_update > latestUpdate) {
+                        latestUpdate = c.last_update.slice(0, 10);
+                    }
+                });
+                document.getElementById('stat-jobs').textContent = totalJobs;
+                document.getElementById('stat-update').textContent = latestUpdate;
+
+                // 渲染对比列表
+                const list = document.getElementById('comparison-list');
+                if (data.length === 0) {
+                    list.innerHTML = '<div class="empty">暂无数据</div>';
+                } else {
+                    list.innerHTML = data.map(c => `
+                        <div class="company-item">
+                            <div class="company-info">
+                                <div class="company-name">${c.name}</div>
+                                <div class="company-meta">${c.industry || '金融科技'} | ${c.position_types || 0} 个岗位类型</div>
+                            </div>
+                            <div class="company-jobs">${c.job_count || 0} 个职位</div>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {
+                showToast('加载失败');
+            }
+        }
+
+        async function loadCompanies() {
+            try {
+                const resp = await fetch('/api/competitor/companies');
+                const data = await resp.json();
+
+                const list = document.getElementById('company-list');
+                if (data.length === 0) {
+                    list.innerHTML = '<div class="empty">暂无公司，请先添加</div>';
+                } else {
+                    list.innerHTML = data.map(c => `
+                        <div class="company-item">
+                            <div class="company-info">
+                                <div class="company-name">${c.name}</div>
+                                <div class="company-meta">${c.industry || ''} | 添加于 ${c.created_time ? c.created_time.slice(0,10) : '-'}</div>
+                            </div>
+                            <button class="btn btn-danger" onclick="deleteCompany(${c.id})" style="padding:6px 12px;">删除</button>
+                        </div>
+                    `).join('');
+                }
+
+                // 更新职位选择下拉框
+                const select = document.getElementById('job-company');
+                select.innerHTML = data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+            } catch(e) {
+                showToast('加载失败');
+            }
+        }
+
+        async function addCompany() {
+            const name = document.getElementById('company-name').value.trim();
+            const industry = document.getElementById('company-industry').value.trim();
+
+            if (!name) {
+                showToast('请输入公司名称');
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/competitor/companies', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, industry })
+                });
+                const data = await resp.json();
+
+                if (data.success) {
+                    showToast('添加成功');
+                    document.getElementById('company-name').value = '';
+                    document.getElementById('company-industry').value = '';
+                    loadCompanies();
+                    loadOverview();
+                } else {
+                    showToast(data.error || '添加失败');
+                }
+            } catch(e) {
+                showToast('网络错误');
+            }
+        }
+
+        async function deleteCompany(id) {
+            if (!confirm('确定删除该公司？')) return;
+            try {
+                await fetch('/api/competitor/companies/' + id, { method: 'DELETE' });
+                loadCompanies();
+                loadOverview();
+            } catch(e) {
+                showToast('删除失败');
+            }
+        }
+
+        async function loadJobs() {
+            try {
+                const resp = await fetch('/api/competitor/jobs?limit=100');
+                const data = await resp.json();
+
+                const list = document.getElementById('job-list');
+                if (data.length === 0) {
+                    list.innerHTML = '<div class="empty">暂无职位，请先添加</div>';
+                } else {
+                    list.innerHTML = data.map(j => `
+                        <div class="job-item">
+                            <div class="job-title">${j.title} <span style="color:#00d4ff;font-size:12px;">(${j.company_name || ''})</span></div>
+                            <div class="job-meta">
+                                ${j.salary ? `<span class="job-tag">${j.salary}</span>` : ''}
+                                ${j.location ? `<span>📍 ${j.location}</span>` : ''}
+                                ${j.experience ? `<span>💼 ${j.experience}</span>` : ''}
+                                ${j.education ? `<span>🎓 ${j.education}</span>` : ''}
+                            </div>
+                            ${j.url ? `<a href="${j.url}" target="_blank" style="color:#00d4ff;font-size:12px;margin-top:8px;display:inline-block;">查看详情 →</a>` : ''}
+                            <button class="btn btn-danger" onclick="deleteJob(${j.id})" style="margin-top:8px;padding:6px 12px;">删除</button>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {
+                showToast('加载失败');
+            }
+        }
+
+        async function addJob() {
+            const company_id = document.getElementById('job-company').value;
+            const title = document.getElementById('job-title').value.trim();
+            const salary = document.getElementById('job-salary').value.trim();
+            const location = document.getElementById('job-location').value.trim();
+            const experience = document.getElementById('job-experience').value.trim();
+            const education = document.getElementById('job-education').value;
+            const url = document.getElementById('job-url').value.trim();
+            const source = document.getElementById('job-source').value;
+
+            if (!company_id || !title) {
+                showToast('请选择公司并输入职位名称');
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/competitor/jobs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        company_id: parseInt(company_id),
+                        title, salary, location, experience, education, url, source
+                    })
+                });
+                const data = await resp.json();
+
+                if (data.success) {
+                    showToast('添加成功');
+                    // 清空表单
+                    ['job-title', 'job-salary', 'job-location', 'job-experience', 'job-url'].forEach(id => {
+                        document.getElementById(id).value = '';
+                    });
+                    loadJobs();
+                    loadOverview();
+                } else {
+                    showToast(data.error || '添加失败');
+                }
+            } catch(e) {
+                showToast('网络错误');
+            }
+        }
+
+        async function deleteJob(id) {
+            if (!confirm('确定删除该职位？')) return;
+            try {
+                await fetch('/api/competitor/jobs/' + id, { method: 'DELETE' });
+                loadJobs();
+                loadOverview();
+            } catch(e) {
+                showToast('删除失败');
+            }
+        }
+
+        function searchJobs() {
+            const keyword = document.getElementById('job-search').value.trim().toLowerCase();
+            const items = document.querySelectorAll('#job-list .job-item');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(keyword) ? 'block' : 'none';
+            });
+        }
+
+        async function loadSalaryStats() {
+            try {
+                const resp = await fetch('/api/competitor/salary-stats');
+                const data = await resp.json();
+
+                const list = document.getElementById('salary-list');
+                if (data.length === 0) {
+                    list.innerHTML = '<div class="empty">暂无薪资数据</div>';
+                } else {
+                    list.innerHTML = data.map(s => `
+                        <div class="job-item">
+                            <div class="job-title">${s.title} <span style="color:#00d4ff;font-size:12px;">(${s.company_name || ''})</span></div>
+                            <div class="job-meta">
+                                <span class="job-tag">平均 ${s.salary_avg || '-'}</span>
+                                <span>职位数: ${s.count}</span>
+                                <span>范围: ${s.salary_range}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {
+                showToast('加载失败');
+            }
+        }
+
+        // 截图采集功能
+        let pendingImages = [];
+
+        function handleScreenshotUpload(files) {
+            if (!files || files.length === 0) return;
+
+            const preview = document.getElementById('screenshot-preview');
+            const results = document.getElementById('screenshot-results');
+
+            // 显示预览
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style = 'max-width:120px;max-height:120px;border-radius:8px;';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+                pendingImages.push(file);
+            });
+
+            // 处理每张图片
+            processImages(files);
+        }
+
+        async function processImages(files) {
+            const results = document.getElementById('screenshot-results');
+            const companyName = prompt('请输入公司名称（用于标识）：', '360金融');
+
+            if (!companyName) return;
+
+            showToast('正在识别截图，请稍候...');
+
+            for (const file of Array.from(files)) {
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('company', companyName);
+
+                try {
+                    const resp = await fetch('/api/competitor/ocr', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await resp.json();
+
+                    if (data.success) {
+                        data.jobs.forEach(job => {
+                            results.innerHTML += `
+                                <div class="job-item" style="border-left:3px solid #00d4ff;">
+                                    <div class="job-title">${job.title}</div>
+                                    <div class="job-meta">
+                                        ${job.salary ? `<span class="job-tag">${job.salary}</span>` : ''}
+                                        ${job.location ? `<span>📍 ${job.location}</span>` : ''}
+                                        ${job.experience ? `<span>💼 ${job.experience}</span>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        if (data.jobs.length === 0) {
+                            results.innerHTML += `
+                                <div class="job-item" style="border-left:3px solid #ff4d4f;">
+                                    <div class="job-title" style="color:#ff4d4f;">未识别到职位（请尝试手动录入）</div>
+                                    <div class="job-meta" style="color:rgba(255,255,255,0.4);font-size:11px;">
+                                        原始文本: ${data.raw_text?.slice(0, 100) || '无'}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        results.innerHTML += `
+                            <div class="job-item" style="border-left:3px solid #ff4d4f;">
+                                <div class="job-title" style="color:#ff4d4f;">识别失败</div>
+                                <div class="job-meta">${data.error || ''}</div>
+                            </div>
+                        `;
+                    }
+                } catch(e) {
+                    results.innerHTML += `
+                        <div class="job-item" style="border-left:3px solid #ff4d4f;">
+                            <div class="job-title" style="color:#ff4d4f;">处理出错</div>
+                            <div class="job-meta">${e.message}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            showToast('识别完成');
+        }
+
+        function showCalibrateHelp() {
+            alert('校准说明：\n\n1. 在终端中运行：python scripts/competitor_human_collect.py --calibrate\n2. 将浏览器中的竞品招聘页面完整显示\n3. 按照提示校准截图区域\n4. 之后可使用该区域进行批量采集');
+        }
+
+        function openCalibrateScript() {
+            window.open('https://localhost:8000/static/competitor.html', '_blank');
+        }
+
+        // 初始化
+        loadOverview();
+        loadCompanies();
+        loadJobs();
+        loadSalaryStats();
+    </script>
+</body>
+</html>

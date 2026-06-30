@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>招聘问答后台 - 信也科技</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+            background: #0a0a0f;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            background: rgba(10,10,15,0.95);
+            border-right: 1px solid rgba(64,224,208,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-header {
+            padding: 15px;
+            border-bottom: 1px solid rgba(64,224,208,0.2);
+        }
+        .sidebar-header h2 { font-size: 16px; color: #40E0D0; }
+        .conversation-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .conversation-item {
+            padding: 15px;
+            border-bottom: 1px solid rgba(64,224,208,0.1);
+            cursor: pointer;
+        }
+        .conversation-item:hover { background: rgba(64,224,208,0.1); }
+        .conversation-item.active { background: rgba(64,224,208,0.2); }
+        .conv-title { font-size: 14px; margin-bottom: 5px; }
+        .conv-preview { font-size: 12px; color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .conv-time { font-size: 10px; color: rgba(255,255,255,0.3); }
+        .conv-badge {
+            background: #ff6b6b; color: #fff;
+            padding: 2px 6px; border-radius: 10px;
+            font-size: 10px; margin-left: 5px;
+        }
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .chat-header {
+            padding: 15px 20px;
+            background: rgba(10,10,15,0.95);
+            border-bottom: 1px solid rgba(64,224,208,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-header h3 { font-size: 16px; }
+        .back-btn { color: #40E0D0; font-size: 14px; text-decoration: none; }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            max-width: 70%;
+            padding: 12px 15px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .message.user {
+            align-self: flex-start;
+            background: rgba(64,224,208,0.15);
+            border: 1px solid rgba(64,224,208,0.3);
+            border-radius: 12px 12px 12px 4px;
+        }
+        .message.hr {
+            align-self: flex-end;
+            background: rgba(138,43,226,0.2);
+            border-radius: 12px 12px 4px 12px;
+        }
+        .message .time {
+            font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 5px;
+        }
+        .chat-input {
+            padding: 15px 20px;
+            background: rgba(10,10,15,0.95);
+            border-top: 1px solid rgba(64,224,208,0.2);
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input input {
+            flex: 1;
+            background: rgba(20,20,30,0.8);
+            border: 1px solid rgba(64,224,208,0.3);
+            color: #fff;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .chat-input input:focus { outline: none; border-color: #40E0D0; }
+        .chat-input button {
+            background: #40E0D0;
+            color: #0a0a0f;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .empty-chat {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.4);
+        }
+        .no-messages {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>💬 会话列表</h2>
+        </div>
+        <div class="conversation-list" id="conversation-list">
+            <div style="padding:20px;text-align:center;color:rgba(255,255,255,0.4);">加载中...</div>
+        </div>
+    </div>
+
+    <div class="chat-area" id="chat-area">
+        <div class="empty-chat">选择一个会话开始对话</div>
+    </div>
+
+    <script>
+        let allQuestions = [];
+        let conversations = [];
+        let currentConvId = null;
+        let loadAttempts = 0;
+
+        async function loadQuestions() {
+            try {
+                const resp = await fetch('/api/qa/list');
+                if (!resp.ok) {
+                    throw new Error('API error: ' + resp.status);
+                }
+                allQuestions = await resp.json();
+                if (!Array.isArray(allQuestions)) {
+                    allQuestions = [];
+                }
+                loadAttempts = 0;
+                buildConversations();
+            } catch(e) {
+                console.error('加载问题失败:', e);
+                loadAttempts++;
+                if (loadAttempts < 3) {
+                    // 重试
+                    setTimeout(loadQuestions, 1000);
+                } else {
+                    // 显示错误
+                    document.getElementById('conversation-list').innerHTML =
+                        '<div style="padding:20px;text-align:center;color:rgba(255,255,255,0.4);">加载失败，点击重试 <button onclick="loadAttempts=0;loadQuestions()" style="background:rgba(64,224,208,0.2);color:#40E0D0;border:1px solid #40E0D0;padding:5px 10px;border-radius:5px;cursor:pointer;">重试</button></div>';
+                }
+            }
+        }
+
+        function buildConversations() {
+            // 按联系人分组 - 相同contact归为一组
+            const convMap = {};
+
+            allQuestions.forEach(q => {
+                const key = q.contact && q.contact !== '访客' ? q.contact : 'anon';
+                if (!convMap[key]) {
+                    convMap[key] = {
+                        id: key,
+                        messages: [],
+                        lastTime: new Date(q.created_time),  // 转换为Date对象
+                        lastMsg: q.question
+                    };
+                }
+                convMap[key].messages.push(q);
+                const msgTime = new Date(q.created_time);
+                if (msgTime > convMap[key].lastTime) {
+                    convMap[key].lastTime = msgTime;
+                    convMap[key].lastMsg = q.question;
+                }
+            });
+
+            conversations = Object.values(convMap).sort((a, b) => b.lastTime.getTime() - a.lastTime.getTime());
+            renderConversationList();
+        }
+
+        function renderConversationList() {
+            const list = document.getElementById('conversation-list');
+            if (conversations.length === 0) {
+                list.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(255,255,255,0.4);">暂无会话</div>';
+                return;
+            }
+
+            list.innerHTML = conversations.map((conv, idx) => {
+                const unread = conv.messages.filter(m => !m.answer).length;
+                const title = conv.id === '人工对话' ? '👨‍💼 人工对话' : '💬 访客' + idx;
+                return `
+                    <div class="conversation-item ${currentConvId === conv.id ? 'active' : ''}" onclick="selectConversation('${conv.id}')">
+                        <div class="conv-title">${title} ${unread > 0 ? '<span class="conv-badge">' + unread + '</span>' : ''}</div>
+                        <div class="conv-preview">${conv.lastMsg.substring(0, 30)}...</div>
+                        <div class="conv-time">${formatTime(conv.lastTime)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectConversation(convId) {
+            currentConvId = convId;
+            renderConversationList();
+            renderChat();
+        }
+
+        function renderChat() {
+            const chatArea = document.getElementById('chat-area');
+            const conv = conversations.find(c => c.id === currentConvId);
+
+            if (!conv) {
+                chatArea.innerHTML = '<div class="empty-chat">选择一个会话开始对话</div>';
+                return;
+            }
+
+            const msgs = conv.messages.sort((a, b) => new Date(a.created_time).getTime() - new Date(b.created_time).getTime());
+
+            chatArea.innerHTML = `
+                <div class="chat-header">
+                    <h3>${currentConvId === '人工对话' ? '👨‍💼 人工对话' : '💬 访客'}</h3>
+                </div>
+                <div class="messages" id="messages">
+                    ${msgs.length === 0 ? '<div class="no-messages">暂无消息</div>' : msgs.map(m => `
+                        <div class="message ${m.answer ? 'hr' : 'user'}">
+                            ${m.question}
+                            <div class="time">${formatTime(m.created_time)}</div>
+                            ${m.answer && m.answer !== '【已读】' ? '<div style="margin-top:8px;color:#40E0D0;">💬 ' + m.answer + '</div>' : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="chat-input">
+                    <input id="reply-input" type="text" placeholder="输入回复内容..." onkeypress="if(event.key==='Enter')sendReply()">
+                    <button onclick="sendReply()">发送</button>
+                </div>
+            `;
+        }
+
+        async function sendReply() {
+            const input = document.getElementById('reply-input');
+            const answer = input.value.trim();
+            if (!answer || !currentConvId) return;
+
+            const conv = conversations.find(c => c.id === currentConvId);
+            if (!conv || conv.messages.length === 0) return;
+
+            // 获取该会话最后一条消息的ID作为回复目标
+            const targetMsg = conv.messages[conv.messages.length - 1];
+
+            try {
+                await fetch('/api/qa/answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: targetMsg.id, answer })
+                });
+                input.value = '';
+                loadQuestions();
+            } catch(e) {
+                alert('发送失败');
+            }
+        }
+
+        function formatTime(time) {
+            if (!time) return '';
+            // 确保是字符串
+            time = String(time);
+            return time.replace('T', ' ').substring(0, 16);
+        }
+
+        loadQuestions();
+        setInterval(loadQuestions, 3000);
+    </script>
+</body>
+</html>

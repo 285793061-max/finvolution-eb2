@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>招聘问答 - 信也科技</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+            background: #0a0a0f;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            padding: 15px 20px;
+            background: rgba(10,10,15,0.95);
+            border-bottom: 1px solid rgba(64,224,208,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-icon { font-size: 24px; }
+        .header-title { font-size: 16px; color: #40E0D0; }
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 12px 15px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .message.bot {
+            align-self: flex-start;
+            background: rgba(64,224,208,0.15);
+            border: 1px solid rgba(64,224,208,0.3);
+            border-radius: 12px 12px 12px 4px;
+        }
+        .message.user {
+            align-self: flex-end;
+            background: rgba(138,43,226,0.2);
+            border-radius: 12px 12px 4px 12px;
+        }
+        .message .time {
+            font-size: 10px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 5px;
+        }
+        .input-area {
+            padding: 15px 20px;
+            background: rgba(10,10,15,0.95);
+            border-top: 1px solid rgba(64,224,208,0.2);
+            display: flex;
+            gap: 10px;
+        }
+        .input-area input {
+            flex: 1;
+            background: rgba(20,20,30,0.8);
+            border: 1px solid rgba(64,224,208,0.3);
+            color: #fff;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .input-area input:focus { outline: none; border-color: #40E0D0; }
+        .input-area button {
+            background: #40E0D0;
+            color: #0a0a0f;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .input-area button:disabled { opacity: 0.5; }
+        .quick-questions {
+            padding: 10px 20px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .quick-btn {
+            background: rgba(64,224,208,0.1);
+            border: 1px solid rgba(64,224,208,0.3);
+            color: #40E0D0;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .quick-btn:active { background: rgba(64,224,208,0.3); }
+        .contact-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: rgba(138,43,Purple,0.3);
+            border: 1px solid rgba(138,43,226,0.5);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="header-icon">🤖</span>
+        <span class="header-title">信也科技招聘助手</span>
+    </div>
+
+    <div class="quick-questions">
+        <button class="quick-btn" onclick="ask('信也科技的薪资待遇如何？')">薪资待遇</button>
+        <button class="quick-btn" onclick="ask('面试流程是怎样的？')">面试流程</button>
+        <button class="quick-btn" onclick="ask('工作地点在哪里？')">工作地点</button>
+        <button class="quick-btn" onclick="ask('有哪些福利？')">福利</button>
+    </div>
+
+    <div class="chat-area" id="chat-area">
+        <div class="message bot">
+            您好！我是信也科技招聘助手🤖
+            <div class="time">刚刚</div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <input id="input" type="text" placeholder="请输入您的问题..." onkeypress="if(event.key==='Enter')send()">
+        <button id="send-btn" onclick="send()">发送</button>
+    </div>
+
+    <button class="contact-btn" onclick="showContact()">📞 联系HR</button>
+    <button class="contact-btn" style="bottom:130px;right:20px;background:rgba(255,107,107,0.2);border:1px solid rgba(255,107,107,0.5);" onclick="startHumanChat()">👨‍💼 转人工</button>
+
+    <!-- 联系弹窗 -->
+    <div id="contact-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:200;align-items:center;justify-content:center;">
+        <div style="background:rgba(20,20,30,0.95);border:1px solid rgba(64,224,208,0.3);border-radius:12px;padding:20px;width:90%;max-width:350px;">
+            <h3 style="margin-bottom:15px;color:#40E0D0;">联系HR</h3>
+            <p style="font-size:14px;margin-bottom:15px;color:rgba(255,255,255,0.7);">留下您的联系方式，HR会尽快联系您</p>
+            <input id="name-input" placeholder="姓名" style="width:100%;background:rgba(10,10,15,0.8);color:#fff;border:1px solid rgba(64,224,208,0.3);padding:12px;border-radius:8px;font-size:14px;margin-bottom:10px;">
+            <input id="contact-input" placeholder="手机号" style="width:100%;background:rgba(10,10,15,0.8);color:#fff;border:1px solid rgba(64,224,208,0.3);padding:12px;border-radius:8px;font-size:14px;margin-bottom:15px;">
+            <textarea id="msg-input" placeholder="留言..." style="width:100%;min-height:80px;background:rgba(10,10,15,0.8);color:#fff;border:1px solid rgba(64,224,208,0.3);padding:12px;border-radius:8px;font-size:14px;margin-bottom:15px;"></textarea>
+            <div style="display:flex;gap:10px;">
+                <button onclick="closeContact()" style="flex:1;background:rgba(64,224,208,0.2);color:#40E0D0;border:none;padding:12px;border-radius:8px;cursor:pointer;">取消</button>
+                <button onclick="submitContact()" style="flex:1;background:#40E0D0;color:#0a0a0f;border:none;padding:12px;border-radius:8px;cursor:pointer;font-weight:600;">提交</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/config.js"></script>
+    <script>
+        // ==================== 微信OAuth配置 ====================
+        // 检查是否启用微信OAuth
+        const WECHAT_ENABLED = typeof WECHAT_CONFIG !== 'undefined' && WECHAT_CONFIG.enabled;
+        const WECHAT_APPID = typeof WECHAT_CONFIG !== 'undefined' ? WECHAT_CONFIG.appId : '';
+
+        // 检查是否在微信环境
+        function isWechat() {
+            return navigator.userAgent.toLowerCase().includes('micromessenger');
+        }
+
+        // 获取微信授权
+        async function getWechatAuth() {
+            if (!WECHAT_ENABLED || !WECHAT_APPID) {
+                return null;
+            }
+
+            const code = getUrlParam('code');
+            const state = getUrlParam('state');
+
+            if (code) {
+                // 有code，换取openid（使用后端代理API）
+                try {
+                    let url = `/api/wechat/auth?code=${code}`;
+                    if (WECHAT_CONFIG.appId && WECHAT_CONFIG.appSecret) {
+                        url += `&appid=${WECHAT_CONFIG.appId}&appsecret=${WECHAT_CONFIG.appSecret}`;
+                    }
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    if (data.openid) {
+                        localStorage.setItem('wechat_openid', data.openid);
+                        cleanUrlParams();
+                        return data.openid;
+                    }
+                } catch(e) {
+                    console.error('获取openid失败:', e);
+                }
+            } else if (isWechat() && !localStorage.getItem('wechat_openid')) {
+                // 跳转微信授权
+                const redirectUri = encodeURIComponent(window.location.href);
+                const scope = 'snsapi_base';  // 静默授权
+                const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${WECHAT_APPID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=1#wechat_redirect`;
+                window.location.href = authUrl;
+                return null;
+            }
+
+            return localStorage.getItem('wechat_openid');
+        }
+
+        function getUrlParam(name) {
+            const reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)');
+            const r = window.location.search.substr(1).match(reg);
+            return r ? decodeURIComponent(r[2]) : null;
+        }
+
+        function cleanUrlParams() {
+            const url = window.location.protocol + '//' + window.location.host + window.location.pathname;
+            window.history.replaceState({}, '', url);
+        }
+
+        // 获取用户标识（优先用微信openid，否则用本地session）
+        function getUserId() {
+            return localStorage.getItem('wechat_openid') || localStorage.getItem('qa_session_id') || 'visitor_' + Date.now();
+        }
+        // ====================
+
+        const answers = {
+            '薪资': '💰 信也科技的薪资待遇在行业中处于中上水平，具体根据岗位和经验面议。我们提供：\n• 基本薪资+绩效奖金\n• 年度调薪机会\n• 股权激励（优秀员工）',
+            '待遇': '🎁 完善的薪酬福利体系：\n• 五险一金\n• 年度体检\n• 带薪年假\n• 节日福利\n• 下午茶、团建活动',
+            '面试': '📋 面试流程：\n1. 初试（HR）- 30分钟\n2. 复试（部门负责人）- 45分钟\n3. 终面（高管）- 30分钟\n\n整体流程约2-3个工作日',
+            '工作地点': '📍 工作地点：\n上海市浦东新区陆家嘴金融中心\n\n地铁方便，附近有多条线路',
+            '加班': '⏰ 我们不提倡加班文化！\n鼓励高效工作，如果项目紧急会有加班补贴或调休',
+            '简历': '📝 投递简历方式：\n• 招聘网站（BOSS直聘、拉勾等）\n• 公司官网\n• HR邮箱直投',
+            '岗位': '📋 热门岗位：\n• 后端开发工程师\n• 算法工程师\n• 产品经理\n• 数据分析师\n\n您想了解哪个岗位？',
+            '默认': '感谢您的提问！😊 如果您还有其他问题，欢迎继续询问。\n\n也可以点击右上角"联系HR"，留下您的联系方式，HR会尽快回复您~'
+        };
+
+        function ask(q) {
+            document.getElementById('input').value = q;
+            send();
+        }
+
+        function send() {
+            const input = document.getElementById('input');
+            const question = input.value.trim();
+            if (!question) return;
+
+            addMessage('user', question);
+            input.value = '';
+
+            if (humanMode) {
+                // 人工模式：发送消息到后台
+                fetch('/api/qa/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: question, contact: sessionId, status: '人工' })
+                });
+                addMessage('bot', '⏳ 消息已发送，等待HR回复...');
+            } else {
+                // AI模式：模拟AI回复
+                setTimeout(() => {
+                    let answer = answers['默认'];
+                    for (const key in answers) {
+                        if (question.includes(key)) {
+                            answer = answers[key];
+                            break;
+                        }
+                    }
+                    addMessage('bot', answer);
+                }, 500);
+            }
+        }
+
+        function addMessage(type, text) {
+            const area = document.getElementById('chat-area');
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            div.innerHTML = text.replace(/\n/g, '<br>') + `<div class="time">${new Date().toLocaleTimeString()}</div>`;
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function showContact() {
+            document.getElementById('contact-modal').style.display = 'flex';
+        }
+
+        function closeContact() {
+            document.getElementById('contact-modal').style.display = 'none';
+        }
+
+        async function submitContact() {
+            const name = document.getElementById('name-input').value.trim();
+            const contact = document.getElementById('contact-input').value.trim();
+            const msg = document.getElementById('msg-input').value.trim();
+
+            if (!name || !contact || !msg) {
+                alert('请填写完整信息');
+                return;
+            }
+
+            try {
+                await fetch('/api/qa/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: msg, contact: name + ' - ' + contact })
+                });
+                alert('提交成功！HR会尽快联系您');
+                closeContact();
+            } catch(e) {
+                alert('提交失败，请重试');
+            }
+        }
+
+        async function requestHuman() {
+            const name = prompt('请留下您的姓名：');
+            if (!name) return;
+
+            const contact = prompt('请留下您的手机号：');
+            if (!contact) return;
+
+            const msg = prompt('请描述您的问题：');
+            if (!msg) return;
+
+            try {
+                await fetch('/api/qa/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: msg, contact: name + ' - ' + contact, status: '人工' })
+                });
+                alert('✅ 已提交转人工请求！\n\nHR看到后会尽快联系您，请保持电话畅通。');
+            } catch(e) {
+                alert('提交失败，请重试');
+            }
+        }
+
+        let humanMode = false;
+        // 用户标识（优先用微信openid，否则用本地session）
+        let sessionId = getUserId();
+        localStorage.setItem('qa_session_id', sessionId);
+
+        function startHumanChat() {
+            humanMode = true;
+
+            // 通知后台有新的人工请求
+            fetch('/api/qa/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: '【转人工】用户发起人工对话', contact: sessionId, status: '人工' })
+            });
+
+            // 添加人工聊天提示
+            const area = document.getElementById('chat-area');
+            const div = document.createElement('div');
+            div.className = 'message bot';
+            div.innerHTML = '👨‍💼 您已连接人工客服<br>请直接发送您的问题，HR会尽快回复您~<div class="time">刚刚</div>';
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+
+            // 每3秒检查是否有HR回复
+            setInterval(async () => {
+                try {
+                    const resp = await fetch('/api/qa/list');
+                    const questions = await resp.json();
+                    // 查找人工对话消息
+                    const humanMsgs = questions.filter(q => q.contact === sessionId && q.status === '人工');
+                    if (humanMsgs.length > 0) {
+                        const latest = humanMsgs[humanMsgs.length - 1];
+                        if (latest.answer && latest.answer !== '⏳ 消息已发送，等待HR回复...') {
+                            addMessage('bot', '👨‍💼 HR回复：' + latest.answer);
+                        }
+                    }
+                } catch(e) {}
+            }, 3000);
+        }
+
+        // 页面初始化：检查微信授权
+        async function initPage() {
+            if (isWechat()) {
+                await getWechatAuth();
+                sessionId = getUserId();
+            }
+        }
+
+        // 启动
+        initPage();
+    </script>
+</body>
+</html>

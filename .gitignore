@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Mac
+.DS_Store
+.DS_Store?
+
+# Data files (will be created fresh on server)
+*.db
+*.db-journal
+data/*.json
+!data/sample*.json
+
+# Logs
+*.log
+logs/

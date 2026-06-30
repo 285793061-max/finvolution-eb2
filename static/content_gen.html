@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>内容生成 - 雇主品牌管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #050510;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 背景效果 */
+        .bg-effects {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+            background: linear-gradient(180deg, #050508 0%, #080810 100%);
+        }
+        .ripple-layer { position: absolute; width: 100%; height: 100%; overflow: hidden; }
+        .ripple-circle {
+            position: absolute; top: 50%; left: 50%;
+            border-radius: 50%; border: 1px solid rgba(0,212,255,0.12);
+            animation: rippleExpand 10s ease-out infinite;
+        }
+        .ripple-circle:nth-of-type(1) { animation-delay: 0s; }
+        .ripple-circle:nth-of-type(2) { animation-delay: -2.5s; }
+        .ripple-circle:nth-of-type(3) { animation-delay: -5s; }
+        @keyframes rippleExpand {
+            0% { width: 0; height: 0; margin-left: 0; margin-top: 0; opacity: 0.5; border-width: 1px; }
+            50% { opacity: 0.25; border-color: #8a2be2; }
+            100% { width: 150vmax; height: 150vmax; margin-left: -75vmax; margin-top: -75vmax; opacity: 0; border-width: 0px; }
+        }
+
+        /* Header */
+        .header {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            background: rgba(10, 10, 20, 0.75);
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(0,212,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 20px; z-index: 100;
+        }
+        .logo {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2, #00d4ff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Content */
+        .content {
+            padding: 80px 20px 100px;
+            position: relative; z-index: 1;
+        }
+
+        .page-title {
+            font-size: 24px; font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        .page-desc {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 24px;
+        }
+
+        /* Tab Nav */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .tab-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0,212,255,0.15);
+            color: rgba(255,255,255,0.6);
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover { background: rgba(0,212,255,0.1); color: #00d4ff; }
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(138,43,226,0.2));
+            border-color: rgba(0,212,255,0.4);
+            color: #00d4ff;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0,212,255,0.1);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group:last-child { margin-bottom: 0; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            color: #fff;
+            border: 1px solid rgba(0,212,255,0.2);
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: rgba(0,212,255,0.5);
+            box-shadow: 0 0 20px rgba(0,212,255,0.15);
+        }
+        textarea { min-height: 80px; resize: vertical; }
+
+        select { cursor: pointer; }
+        select option { background: #1a1a2e; color: #fff; }
+
+        .btn-generate {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.4);
+        }
+        .btn-generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Quick Options */
+        .quick-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .quick-btn {
+            background: rgba(0,212,255,0.1);
+            border: 1px solid rgba(0,212,255,0.25);
+            color: #00d4ff;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-btn:hover { background: rgba(0,212,255,0.2); }
+        .quick-btn.active {
+            background: rgba(0,212,255,0.25);
+            border-color: rgba(0,212,255,0.5);
+        }
+
+        /* Result Card */
+        .result-card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0,212,255,0.1);
+            border-radius: 20px;
+            padding: 24px;
+            display: none;
+        }
+        .result-card.show { display: block; }
+
+        .result-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-content {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+        }
+
+        .result-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .tag {
+            background: rgba(138,43,226,0.2);
+            border: 1px solid rgba(138,43,226,0.3);
+            color: #8a2be2;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .result-suggestions {
+            background: rgba(82,196,26,0.1);
+            border: 1px solid rgba(82,196,26,0.2);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .suggestions-title {
+            font-size: 13px;
+            color: #52c41a;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .suggestion-item {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 4px;
+            padding-left: 16px;
+            position: relative;
+        }
+        .suggestion-item::before {
+            content: '•';
+            position: absolute;
+            left: 4px;
+            color: #52c41a;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            border: none;
+        }
+        .btn-copy {
+            background: rgba(0,212,255,0.15);
+            border: 1px solid rgba(0,212,255,0.3);
+            color: #00d4ff;
+        }
+        .btn-copy:hover { background: rgba(0,212,255,0.25); }
+        .btn-regenerate {
+            background: linear-gradient(135deg, rgba(138,43,226,0.2), rgba(0,212,255,0.2));
+            border: 1px solid rgba(138,43,226,0.3);
+            color: #8a2be2;
+        }
+        .btn-regenerate:hover { background: linear-gradient(135deg, rgba(138,43,226,0.3), rgba(0,212,255,0.3)); }
+
+        /* Image/Video Result */
+        .media-result {
+            display: none;
+        }
+        .media-result.show { display: block; }
+        .media-preview {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .media-preview img, .media-preview video {
+            width: 100%;
+            display: block;
+        }
+        .media-info {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            padding: 12px;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .loading.show { display: block; }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(0,212,255,0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(20,20,35,0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 14px;
+            color: #00d4ff;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Section */
+        .section-title {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Type Grid */
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .type-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .type-item:hover {
+            background: rgba(0,212,255,0.08);
+            border-color: rgba(0,212,255,0.2);
+        }
+        .type-item.active {
+            background: rgba(0,212,255,0.15);
+            border-color: rgba(0,212,255,0.4);
+        }
+        .type-icon { font-size: 24px; margin-bottom: 6px; }
+        .type-name { font-size: 12px; color: rgba(255,255,255,0.8); }
+
+        /* Credit Status */
+        .credit-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 12px;
+        }
+        .credit-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #ff4d4f;
+        }
+        .credit-dot.online { background: #52c41a; }
+        .credit-text { color: rgba(255,255,255,0.6); flex: 1; }
+        .login-btn {
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            border: none;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        /* Login Modal */
+        .login-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .login-modal.show { display: flex; }
+        .login-content {
+            background: rgba(20,20,35,0.98);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        .login-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 20px;
+        }
+        .login-step {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        .login-url {
+            background: rgba(0,212,255,0.1);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 10px;
+            padding: 14px;
+            margin: 16px 0;
+            word-break: break-all;
+            font-size: 13px;
+            color: #00d4ff;
+        }
+        .login-code {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 6px;
+            padding: 20px 30px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(138,43,226,0.2));
+            border: 2px solid rgba(0,212,255,0.4);
+            border-radius: 12px;
+            margin: 16px 0;
+            box-shadow: 0 0 30px rgba(0,212,255,0.3);
+        }
+        .login-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .login-action-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+        .login-open-url {
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            color: #fff;
+        }
+        .login-open-url:hover {
+            box-shadow: 0 5px 20px rgba(0,212,255,0.4);
+        }
+        .login-status {
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+        .login-status.waiting { background: rgba(255,217,61,0.1); color: #ffd700; }
+        .login-status.success { background: rgba(82,196,26,0.1); color: #52c41a; }
+        .login-status.error { background: rgba(255,77,79,0.1); color: #ff4d4f; }
+        .login-close {
+            position: absolute;
+            top: 15px; right: 20px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.5);
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects">
+        <div class="ripple-layer">
+            <div class="ripple-circle"></div>
+            <div class="ripple-circle"></div>
+            <div class="ripple-circle"></div>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="logo">内容生成</div>
+    </header>
+
+    <main class="content">
+        <div class="credit-status" id="credit-status">
+            <div class="credit-dot" id="credit-dot"></div>
+            <span class="credit-text" id="credit-text">检测登录状态...</span>
+            <button class="login-btn" id="login-btn" onclick="openLoginModal()">登录即梦</button>
+        </div>
+
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="text" onclick="switchTab('text')">📝 文本生成</button>
+            <button class="tab-btn" data-tab="image" onclick="switchTab('image')">🖼️ 图片生成</button>
+            <button class="tab-btn" data-tab="video" onclick="switchTab('video')">🎬 视频生成</button>
+        </div>
+
+        <!-- Text Generation -->
+        <div id="text-tab" class="tab-content">
+            <div class="form-card">
+                <div class="form-group">
+                    <label>内容类型</label>
+                    <div class="type-grid">
+                        <div class="type-item active" data-type="social" onclick="selectType(this)">
+                            <div class="type-icon">📱</div>
+                            <div class="type-name">社交帖子</div>
+                        </div>
+                        <div class="type-item" data-type="job_desc" onclick="selectType(this)">
+                            <div class="type-icon">📋</div>
+                            <div class="type-name">招聘JD</div>
+                        </div>
+                        <div class="type-item" data-type="company_intro" onclick="selectType(this)">
+                            <div class="type-icon">🏢</div>
+                            <div class="type-name">公司简介</div>
+                        </div>
+                        <div class="type-item" data-type="recruit_notice" onclick="selectType(this)">
+                            <div class="type-icon">📢</div>
+                            <div class="type-name">招聘公告</div>
+                        </div>
+                        <div class="type-item" data-type="employer_brand" onclick="selectType(this)">
+                            <div class="type-icon">✨</div>
+                            <div class="type-name">雇主品牌</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="content_type" value="social">
+                </div>
+
+                <div class="form-group">
+                    <label>关键词 / 公司名称</label>
+                    <input type="text" id="keyword" placeholder="输入公司名称或关键词，如：信也科技">
+                </div>
+
+                <div class="form-group">
+                    <label>目标平台</label>
+                    <select id="platform">
+                        <option value="">自动选择</option>
+                        <option value="xiaohongshu">小红书</option>
+                        <option value="weibo">微博</option>
+                        <option value="wechat">微信公众号</option>
+                        <option value="linkedin">领英</option>
+                        <option value="douyin">抖音</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>内容风格</label>
+                    <select id="style">
+                        <option value="professional">专业严肃</option>
+                        <option value="friendly">亲切友好</option>
+                        <option value="trendy">年轻潮流</option>
+                        <option value="warm">温暖感人</option>
+                        <option value="humor">幽默风趣</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>内容长度</label>
+                    <select id="length">
+                        <option value="short">短（100字以内）</option>
+                        <option value="medium" selected>中（200-300字）</option>
+                        <option value="long">长（500字以上）</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>额外要求（可选）</label>
+                    <textarea id="extra" placeholder="输入额外要求，如：突出团队氛围、强调技术实力..."></textarea>
+                </div>
+
+                <button class="btn-generate" id="generate-btn" onclick="generateText()">
+                    ✨ 生成内容
+                </button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">AI 正在生成内容，请稍候...</div>
+            </div>
+
+            <div class="result-card" id="result">
+                <div class="result-title">
+                    <span>✨</span> 生成结果
+                </div>
+                <div class="result-content" id="result-content"></div>
+                <div class="result-tags" id="result-tags"></div>
+                <div class="result-suggestions" id="result-suggestions"></div>
+                <div class="action-btns">
+                    <button class="btn-action btn-copy" onclick="copyContent()">📋 复制内容</button>
+                    <button class="btn-action btn-regenerate" onclick="generateText()">🔄 重新生成</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Generation -->
+        <div id="image-tab" class="tab-content" style="display:none;">
+            <div class="form-card">
+                <div class="form-group">
+                    <label>图片描述</label>
+                    <textarea id="image-prompt" placeholder="描述你想要生成的图片，如：科技公司工作场景，员工开心工作"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>图片比例</label>
+                    <select id="image-ratio">
+                        <option value="1:1">1:1 (方形)</option>
+                        <option value="16:9" selected>16:9 (宽屏)</option>
+                        <option value="9:16">9:16 (竖版)</option>
+                        <option value="4:3">4:3</option>
+                        <option value="3:2">3:2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>图片模型</label>
+                    <select id="image-model">
+                        <option value="3.0">3.0 (推荐)</option>
+                        <option value="4.0">4.0</option>
+                        <option value="5.0">5.0</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>分辨率</label>
+                    <select id="image-resolution">
+                        <option value="2k">2K</option>
+                        <option value="4k">4K</option>
+                        <option value="1k">1K</option>
+                    </select>
+                </div>
+
+                <button class="btn-generate" id="image-generate-btn" onclick="generateImage()">
+                    🖼️ 生成图片
+                </button>
+            </div>
+
+            <div class="loading" id="image-loading">
+                <div class="spinner"></div>
+                <div class="loading-text">图片生成中，请稍候...</div>
+            </div>
+
+            <div class="result-card media-result" id="image-result">
+                <div class="result-title">
+                    <span>🖼️</span> 图片生成结果
+                </div>
+                <div class="media-preview" id="image-preview"></div>
+                <div class="media-info" id="image-info"></div>
+                <div class="action-btns">
+                    <button class="btn-action btn-copy" onclick="downloadImage()">📥 下载图片</button>
+                    <button class="btn-action btn-regenerate" onclick="generateImage()">🔄 重新生成</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Generation -->
+        <div id="video-tab" class="tab-content" style="display:none;">
+            <div class="form-card">
+                <div class="form-group">
+                    <label>视频描述</label>
+                    <textarea id="video-prompt" placeholder="描述你想要生成的视频，如：科技公司办公环境，员工在讨论项目"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>视频时长</label>
+                    <select id="video-duration">
+                        <option value="5">5秒</option>
+                        <option value="10" selected>10秒</option>
+                        <option value="15">15秒</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>视频比例</label>
+                    <select id="video-ratio">
+                        <option value="16:9" selected>16:9 (横版)</option>
+                        <option value="9:16">9:16 (竖版)</option>
+                        <option value="1:1">1:1 (方形)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>视频模型</label>
+                    <select id="video-model">
+                        <option value="seedance2.0fast">Seedance 2.0 Fast (快速)</option>
+                        <option value="seedance2.0">Seedance 2.0 (高质量)</option>
+                        <option value="seedance2.0_vip">Seedance 2.0 VIP (最高质量)</option>
+                    </select>
+                </div>
+
+                <button class="btn-generate" id="video-generate-btn" onclick="generateVideo()">
+                    🎬 生成视频
+                </button>
+            </div>
+
+            <div class="loading" id="video-loading">
+                <div class="spinner"></div>
+                <div class="loading-text">视频生成中，请稍候（可能需要较长时间）...</div>
+            </div>
+
+            <div class="result-card media-result" id="video-result">
+                <div class="result-title">
+                    <span>🎬</span> 视频生成结果
+                </div>
+                <div class="media-preview" id="video-preview"></div>
+                <div class="media-info" id="video-info"></div>
+                <div class="action-btns">
+                    <button class="btn-action btn-copy" onclick="downloadVideo()">📥 下载视频</button>
+                    <button class="btn-action btn-regenerate" onclick="generateVideo()">🔄 重新生成</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="login-modal">
+        <div class="login-content" style="position:relative;">
+            <button class="login-close" onclick="closeLoginModal()">&times;</button>
+            <div class="login-title">登录即梦</div>
+            <div class="login-step" id="login-step">正在获取登录信息...</div>
+            <div class="login-url" id="login-url" style="display:none;"></div>
+            <div class="login-code" id="login-code" style="display:none;"></div>
+            <div class="login-btn-group" id="login-btn-group" style="display:none;">
+                <button class="login-action-btn login-open-url" id="open-url-btn" onclick="openVerificationUrl()">🚀 打开登录页面</button>
+            </div>
+            <div class="login-status" id="login-status" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentResult = null;
+        let currentImageUrl = null;
+        let currentVideoUrl = null;
+        let currentVerificationUrl = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = content.id === tab + '-tab' ? 'block' : 'none';
+            });
+        }
+
+        function selectType(el) {
+            document.querySelectorAll('.type-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            el.classList.add('active');
+            document.getElementById('content_type').value = el.dataset.type;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Check login status
+        async function checkCredit() {
+            try {
+                const resp = await fetch('/api/generate/credit');
+                const data = await resp.json();
+                const dot = document.getElementById('credit-dot');
+                const text = document.getElementById('credit-text');
+                if (data.logged_in) {
+                    dot.classList.add('online');
+                    text.textContent = '已登录即梦 | ' + (data.credit || '可用');
+                } else {
+                    dot.classList.remove('online');
+                    text.textContent = '未登录即梦，请运行 dreamina login';
+                }
+            } catch(e) {
+                document.getElementById('credit-text').textContent = '检测失败';
+            }
+        }
+        checkCredit();
+
+        function openLoginModal() {
+            const modal = document.getElementById('login-modal');
+            const step = document.getElementById('login-step');
+            const urlEl = document.getElementById('login-url');
+            const codeEl = document.getElementById('login-code');
+            const statusEl = document.getElementById('login-status');
+
+            step.textContent = '正在获取登录信息...';
+            step.style.display = 'block';
+            urlEl.style.display = 'none';
+            codeEl.style.display = 'none';
+            statusEl.style.display = 'none';
+            statusEl.className = 'login-status';
+
+            modal.classList.add('show');
+
+            // 调用后端获取登录信息
+            fetch('/api/generate/login')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.verification_uri && data.user_code && data.device_code) {
+                        currentVerificationUrl = data.verification_uri;
+                        step.innerHTML = '请在下方打开登录页面，然后在浏览器中输入验证码完成授权';
+                        urlEl.style.display = 'block';
+                        urlEl.textContent = data.verification_uri;
+                        codeEl.style.display = 'block';
+                        codeEl.textContent = data.user_code;
+                        document.getElementById('login-btn-group').style.display = 'flex';
+
+                        statusEl.style.display = 'block';
+                        statusEl.className = 'login-status waiting';
+                        statusEl.textContent = '等待登录确认...（授权后可能需要几秒钟更新状态）';
+
+                        // 轮询检查登录状态
+                        pollLoginStatus(data.device_code);
+                    } else if (data.error) {
+                        step.textContent = '获取登录信息失败：' + data.error;
+                    } else {
+                        step.textContent = '获取登录信息失败，请重试';
+                    }
+                })
+                .catch(e => {
+                    step.textContent = '网络错误，请重试';
+                });
+        }
+
+        function pollLoginStatus(deviceCode) {
+            let attempts = 0;
+            const maxAttempts = 60; // 最多轮询60次（约3分钟）
+            const poll = () => {
+                attempts++;
+                // 使用专门的登录状态检查接口
+                fetch('/api/generate/checklogin/' + deviceCode)
+                    .then(r => r.json())
+                    .then(data => {
+                        const statusEl = document.getElementById('login-status');
+                        if (data.logged_in) {
+                            statusEl.className = 'login-status success';
+                            statusEl.textContent = '登录成功！';
+                            setTimeout(() => {
+                                closeLoginModal();
+                                checkCredit();
+                            }, 1500);
+                        } else if (attempts >= maxAttempts) {
+                            statusEl.className = 'login-status error';
+                            statusEl.textContent = '登录超时，请重试';
+                        } else {
+                            // 继续轮询，每3秒检查一次
+                            setTimeout(poll, 3000);
+                        }
+                    })
+                    .catch(() => {
+                        if (attempts < maxAttempts) {
+                            setTimeout(poll, 3000);
+                        }
+                    });
+            };
+            // 首次检查前等待5秒（给用户操作时间）
+            setTimeout(poll, 5000);
+        }
+
+        function openVerificationUrl() {
+            if (currentVerificationUrl) {
+                window.open(currentVerificationUrl, '_blank');
+            }
+        }
+
+        function closeLoginModal() {
+            document.getElementById('login-modal').classList.remove('show');
+        }
+
+        async function generateText() {
+            const keyword = document.getElementById('keyword').value.trim();
+            if (!keyword) {
+                showToast('请输入公司名称或关键词');
+                return;
+            }
+
+            const btn = document.getElementById('generate-btn');
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('result').classList.remove('show');
+
+            try {
+                const response = await fetch('/api/generate/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content_type: document.getElementById('content_type').value,
+                        keyword: keyword,
+                        platform: document.getElementById('platform').value || undefined,
+                        style: document.getElementById('style').value,
+                        length: document.getElementById('length').value,
+                        extra_requirements: document.getElementById('extra').value || undefined
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentResult = data;
+                    document.getElementById('result-content').textContent = data.content;
+                    document.getElementById('result-tags').innerHTML = (data.tags || []).map(t =>
+                        `<span class="tag">${t}</span>`
+                    ).join('');
+                    document.getElementById('result-suggestions').innerHTML = `
+                        <div class="suggestions-title">💡 建议</div>
+                        ${(data.suggestions || []).map(s => `<div class="suggestion-item">${s}</div>`).join('')}
+                    `;
+                    document.getElementById('result').classList.add('show');
+                } else {
+                    showToast(data.error || '生成失败');
+                }
+            } catch (e) {
+                showToast('网络错误，请重试');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✨ 生成内容';
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+
+        async function generateImage() {
+            const prompt = document.getElementById('image-prompt').value.trim();
+            if (!prompt) {
+                showToast('请输入图片描述');
+                return;
+            }
+
+            const btn = document.getElementById('image-generate-btn');
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+
+            document.getElementById('image-loading').classList.add('show');
+            document.getElementById('image-result').classList.remove('show');
+
+            try {
+                const response = await fetch('/api/generate/image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        ratio: document.getElementById('image-ratio').value,
+                        model_version: document.getElementById('image-model').value,
+                        resolution_type: document.getElementById('image-resolution').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.gen_status === 'success' && data.image_url) {
+                        currentImageUrl = data.image_url;
+                        document.getElementById('image-preview').innerHTML =
+                            `<img src="${data.image_url}" alt="Generated image">`;
+                        document.getElementById('image-info').textContent =
+                            `模型: ${document.getElementById('image-model').value} | 比例: ${document.getElementById('image-ratio').value}`;
+                        document.getElementById('image-result').classList.add('show');
+                    } else if (data.gen_status === 'querying') {
+                        showToast('图片生成中，请稍后查询结果 (submit_id: ' + data.submit_id + ')');
+                        pollImageResult(data.submit_id);
+                    }
+                } else {
+                    showToast(data.error || '图片生成失败');
+                }
+            } catch (e) {
+                showToast('网络错误，请重试');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🖼️ 生成图片';
+                document.getElementById('image-loading').classList.remove('show');
+            }
+        }
+
+        async function pollImageResult(submitId) {
+            let attempts = 0;
+            const maxAttempts = 30;
+            const poll = async () => {
+                if (attempts >= maxAttempts) {
+                    showToast('查询超时，请稍后在任务列表中查看');
+                    return;
+                }
+                try {
+                    const resp = await fetch('/api/generate/query/' + submitId);
+                    const data = await resp.json();
+                    if (data.gen_status === 'success' && data.image_url) {
+                        currentImageUrl = data.image_url;
+                        document.getElementById('image-preview').innerHTML =
+                            `<img src="${data.image_url}" alt="Generated image">`;
+                        document.getElementById('image-result').classList.add('show');
+                        showToast('图片生成完成');
+                        return;
+                    }
+                    if (data.gen_status === 'fail') {
+                        showToast('生成失败: ' + (data.error || '未知错误'));
+                        return;
+                    }
+                } catch(e) {}
+                attempts++;
+                setTimeout(poll, 2000);
+            };
+            poll();
+        }
+
+        async function generateVideo() {
+            const prompt = document.getElementById('video-prompt').value.trim();
+            if (!prompt) {
+                showToast('请输入视频描述');
+                return;
+            }
+
+            const btn = document.getElementById('video-generate-btn');
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+
+            document.getElementById('video-loading').classList.add('show');
+            document.getElementById('video-result').classList.remove('show');
+
+            try {
+                const response = await fetch('/api/generate/video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        duration: parseInt(document.getElementById('video-duration').value),
+                        ratio: document.getElementById('video-ratio').value,
+                        model_version: document.getElementById('video-model').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.gen_status === 'success' && data.video_url) {
+                        currentVideoUrl = data.video_url;
+                        document.getElementById('video-preview').innerHTML =
+                            `<video src="${data.video_url}" controls></video>`;
+                        document.getElementById('video-info').textContent =
+                            `模型: ${document.getElementById('video-model').value} | 时长: ${document.getElementById('video-duration').value}秒`;
+                        document.getElementById('video-result').classList.add('show');
+                    } else if (data.gen_status === 'querying') {
+                        showToast('视频生成中，请稍后查询结果 (submit_id: ' + data.submit_id + ')');
+                        pollVideoResult(data.submit_id);
+                    }
+                } else {
+                    showToast(data.error || '视频生成失败');
+                }
+            } catch (e) {
+                showToast('网络错误，请重试');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🎬 生成视频';
+                document.getElementById('video-loading').classList.remove('show');
+            }
+        }
+
+        async function pollVideoResult(submitId) {
+            let attempts = 0;
+            const maxAttempts = 60;
+            const poll = async () => {
+                if (attempts >= maxAttempts) {
+                    showToast('查询超时，请稍后在任务列表中查看');
+                    return;
+                }
+                try {
+                    const resp = await fetch('/api/generate/query/' + submitId);
+                    const data = await resp.json();
+                    if (data.gen_status === 'success' && data.video_url) {
+                        currentVideoUrl = data.video_url;
+                        document.getElementById('video-preview').innerHTML =
+                            `<video src="${data.video_url}" controls></video>`;
+                        document.getElementById('video-result').classList.add('show');
+                        showToast('视频生成完成');
+                        return;
+                    }
+                    if (data.gen_status === 'fail') {
+                        showToast('生成失败: ' + (data.error || '未知错误'));
+                        return;
+                    }
+                } catch(e) {}
+                attempts++;
+                setTimeout(poll, 3000);
+            };
+            poll();
+        }
+
+        function copyContent() {
+            if (!currentResult) return;
+            const text = currentResult.content;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('已复制到剪贴板');
+            }).catch(() => {
+                showToast('复制失败');
+            });
+        }
+
+        function downloadImage() {
+            if (currentImageUrl) {
+                window.open(currentImageUrl, '_blank');
+            }
+        }
+
+        function downloadVideo() {
+            if (currentVideoUrl) {
+                window.open(currentVideoUrl, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>

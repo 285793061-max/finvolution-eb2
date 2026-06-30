@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雇主内容策略</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0a0a0f; color: #fff; min-height: 100vh; overflow-x: hidden; }
+        .header { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: rgba(10,10,15,0.95); border-bottom: 1px solid rgba(64,224,208,0.2); display: flex; align-items: center; padding: 0 15px; overflow-x: auto; z-index: 100; }
+        .logo { font-size: 15px; font-weight: 700; background: linear-gradient(135deg, #40E0D0, #8A2BE2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; }
+        .nav-tabs { display: flex; gap: 5px; margin-left: 15px; position: relative; }
+        .nav-tab { padding: 8px 14px; font-size: 13px; color: rgba(255,255,255,0.5); background: transparent; border: 1px solid transparent; cursor: pointer; white-space: nowrap; border-radius: 8px; transition: color 0.3s, background 0.3s; position: relative; z-index: 1; }
+        .nav-tab:hover { color: rgba(255,255,255,0.7); }
+        .nav-tab.active { color: #40E0D0; }
+        .nav-tab-ink { position: absolute; top: 0; height: 100%; border-radius: 8px; background: rgba(64,224,208,0.15); border: 1px solid rgba(64,224,208,0.3); transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; z-index: 0; }
+        .content { padding: 70px 15px 20px; }
+
+        /* 页面内容淡入 */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .page-content { animation: fadeSlideUp 0.35s ease-out forwards; }
+
+        /* 卡片错开入场 */
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .card { background: rgba(20,20,30,0.8); border: 1px solid rgba(64,224,208,0.15); border-radius: 12px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.25s, background 0.25s, box-shadow 0.25s, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; animation: cardIn 0.4s ease-out forwards; }
+        .card:hover { border-color: rgba(64,224,208,0.5); background: rgba(30,30,45,0.85); box-shadow: 0 4px 24px rgba(64,224,208,0.12); transform: translateY(-2px); }
+        .card:active { transform: scale(0.98) translateY(0); }
+        .card-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; transition: color 0.2s; }
+        .card:hover .card-title { color: #40E0D0; }
+        .card-meta { font-size: 12px; color: rgba(255,255,255,0.5); }
+        .card-stats { display: flex; gap: 15px; font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 8px; }
+
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        @keyframes gridItemIn {
+            from { opacity: 0; transform: scale(0.88); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .grid-item { background: rgba(20,20,30,0.8); border: 1px solid rgba(64,224,208,0.15); border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; transition: border-color 0.25s, background 0.25s, box-shadow 0.25s, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; animation: gridItemIn 0.35s ease-out forwards; }
+        .grid-item:hover { border-color: rgba(64,224,208,0.5); background: rgba(25,25,40,0.9); box-shadow: 0 4px 16px rgba(64,224,208,0.12); transform: translateY(-2px); }
+        .grid-item:active { transform: scale(0.96); }
+        .grid-name { font-size: 13px; font-weight: 600; color: #40E0D0; }
+
+        .competitor-tag { padding: 6px 14px; background: rgba(20,20,30,0.8); border: 1px solid rgba(64,224,208,0.2); border-radius: 20px; font-size: 13px; color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.2s; }
+        .competitor-tag:hover { background: rgba(64,224,208,0.15); border-color: rgba(64,224,208,0.5); color: rgba(255,255,255,0.75); box-shadow: 0 2px 10px rgba(64,224,208,0.15); }
+        .competitor-tag:active { transform: scale(0.95); }
+        .competitor-tag.active { background: rgba(64,224,208,0.2); border-color: rgba(64,224,208,0.6); color: #40E0D0; }
+        .competitor-tag.has-data { color: rgba(255,255,255,0.75); border-color: rgba(64,224,208,0.3); }
+        .competitor-tag.has-data::after { content: '●'; font-size: 10px; margin-left: 6px; color: #52c41a; }
+
+        .add-competitor-btn { padding: 6px 14px; background: transparent; border: 1px dashed rgba(64,224,208,0.35); border-radius: 20px; font-size: 13px; color: rgba(64,224,208,0.6); cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .add-competitor-btn:hover { background: rgba(64,224,208,0.1); border-color: rgba(64,224,208,0.6); color: #40E0D0; }
+
+        .tag { padding: 4px 10px; background: rgba(64,224,208,0.15); color: #40E0D0; border-radius: 20px; font-size: 12px; margin-right: 6px; margin-bottom: 6px; cursor: pointer; display: inline-block; transition: background 0.2s, box-shadow 0.2s, transform 0.2s; }
+        .tag:hover { background: rgba(64,224,208,0.3); box-shadow: 0 2px 12px rgba(64,224,208,0.25); transform: translateY(-1px) scale(1.05); }
+        .tag:active { transform: scale(0.95); }
+
+        .section-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: rgba(255,255,255,0.8); }
+        .platform-group { margin-bottom: 20px; opacity: 0; animation: fadeSlideUp 0.4s ease-out forwards; }
+        .platform-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 15px; }
+        .platform-icon { font-size: 20px; }
+        .platform-name { font-weight: 600; }
+        .weibo .platform-name { color: #FDCB2D; }
+        .xiaohongshu .platform-name { color: #FE4C69; }
+        .douyin .platform-name { color: #fff; }
+        .zhihu .platform-name { color: #0084FF; }
+        .maimai .platform-name { color: #00D4FF; }
+
+        .btn-link { padding: 12px; background: linear-gradient(135deg, rgba(64,224,208,0.2), rgba(138,43,226,0.2)); color: #40E0D0; border-radius: 8px; text-align: center; text-decoration: none; display: block; transition: background 0.25s, box-shadow 0.25s, transform 0.2s; }
+        .btn-link:hover { background: linear-gradient(135deg, rgba(64,224,208,0.35), rgba(138,43,226,0.35)); box-shadow: 0 4px 20px rgba(64,224,208,0.25); transform: translateY(-1px); }
+        .btn-link:active { transform: scale(0.98) translateY(0); }
+
+        /* 平台组错开延迟 */
+        .platform-group:nth-child(1) { animation-delay: 0.05s; }
+        .platform-group:nth-child(2) { animation-delay: 0.12s; }
+        .platform-group:nth-child(3) { animation-delay: 0.19s; }
+        .platform-group:nth-child(4) { animation-delay: 0.26s; }
+        .platform-group:nth-child(5) { animation-delay: 0.33s; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">📊 雇主内容策略</div>
+        <div class="nav-tabs">
+            <div class="nav-tab-ink" id="nav-ink"></div>
+            <div class="nav-tab active" data-tab="mine">📄 我的内容</div>
+            <div class="nav-tab" data-tab="competitor">📊 竞品公司</div>
+            <div class="nav-tab" data-tab="hot">🔥 热门话题</div>
+        </div>
+    </header>
+    <main class="content" id="main"></main>
+    <script>
+        const companys = [
+            {name:'蚂蚁集团',icon:'🐜'},
+            {name:'海尔消金',icon:'🏭'},
+            {name:'度小满',icon:'🔍'},
+            {name:'奇富科技',icon:'🔵'},
+            {name:'乐信',icon:'📱'},
+            {name:'洋钱罐',icon:'💰'},
+            {name:'嘉银金科',icon:'🏦'},
+            {name:'信飞科技',icon:'✈️'}
+        ];
+
+        // Tab 下划线动画
+        function moveInk(el) {
+            const ink = document.getElementById('nav-ink');
+            const rect = el.getBoundingClientRect();
+            const parentRect = el.parentElement.getBoundingClientRect();
+            ink.style.left = (rect.left - parentRect.left) + 'px';
+            ink.style.width = rect.width + 'px';
+        }
+
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', function () {
+                if (this.classList.contains('active')) return;
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                moveInk(this);
+
+                const tabName = this.dataset.tab;
+                if (tabName === 'mine') loadMine();
+                else if (tabName === 'competitor') loadCompetitor();
+                else if (tabName === 'hot') loadHot();
+            });
+        });
+
+        // 初始化 ink 位置
+        document.querySelector('.nav-tab.active') && moveInk(document.querySelector('.nav-tab.active'));
+
+        function loadMine() {
+            document.getElementById('main').innerHTML = '<div class="page-content"><div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">加载中...</div></div>';
+            fetch('/api/wechat/list').then(r => r.json()).then(data => {
+                if (!data || data.length === 0) {
+                    document.getElementById('main').innerHTML = '<div class="page-content"><div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">暂无内容</div></div>';
+                    return;
+                }
+                // 筛选我的公司（信也科技）
+                const myContent = data.filter(item => item.account_name === '信也科技招聘');
+                if (myContent.length === 0) {
+                    document.getElementById('main').innerHTML = '<div class="page-content"><div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">暂无内容</div></div>';
+                    return;
+                }
+                document.getElementById('main').innerHTML = '<div class="page-content">' + myContent.slice(0,15).map((item, i) => `
+                    <div class="card" onclick="openUrl('${item.url || ''}')" style="animation-delay:${i * 0.06}s">
+                        <div class="card-title">${item.title || '无标题'}</div>
+                        <div class="card-meta">${item.account_name || '公众号'} · ${item.publish_date || ''}</div>
+                        ${item.summary ? `<div class="card-stats">${item.summary}</div>` : ''}
+                    </div>
+                `).join('') + '</div>';
+            }).catch(() => {
+                document.getElementById('main').innerHTML = '<div class="page-content"><div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">加载失败</div></div>';
+            });
+        }
+
+        function loadCompetitor() {
+            document.getElementById('main').innerHTML = '<div class="page-content"><div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">加载中...</div></div>';
+            fetch('/api/wechat/list').then(r => r.json()).then(data => {
+                if (!data || data.length === 0) {
+                    document.getElementById('main').innerHTML = '<div class="page-content"><div style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-size:13px;">暂无数据</div></div>';
+                    return;
+                }
+                const myCompany = '信也科技招聘';
+                const competitorContent = data.filter(item => item.account_name !== myCompany);
+                const latest = competitorContent.slice(0, 15);
+
+                // 静态竞品公司列表 + 动态已有数据的公司合并显示
+                const existingAccounts = [...new Set(competitorContent.map(item => item.account_name))];
+                // 优先显示数据库中已有的账号（标记为已有数据）
+                const allCompanys = companys.map(c => {
+                    const matched = existingAccounts.find(a => a.includes(c.name) || c.name.includes(a));
+                    return { name: c.name, hasData: !!matched, matchedAccount: matched || c.name + '招聘' };
+                });
+
+                const competitorTags = allCompanys.map(c => {
+                    const cls = c.hasData ? 'competitor-tag has-data' : 'competitor-tag';
+                    return `<span class="${cls}" onclick="filterByCompany('${c.matchedAccount}', this)">${c.name}${c.hasData ? '' : ' ○'}</span>`;
+                }).join('');
+
+                let html = '';
+
+                // 最新消息 - 始终显示
+                html += '<div id="latest-section"></div>';
+
+                // 竞品公司 - 动态从数据库生成
+                html += '<div class="section-title" style="margin-top:28px;margin-bottom:12px;">🏢 竞品公司</div>';
+                html += '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:20px;">';
+                html += competitorTags || '<span style="font-size:13px;color:rgba(255,255,255,0.4);">暂无竞品数据</span>';
+                html += '<a href="https://www.feedwe.top/subscriptions" target="_blank" class="add-competitor-btn">＋ 添加竞品</a></div>';
+                html += '<div id="competitor-articles"></div>';
+
+                document.getElementById('main').innerHTML = '<div class="page-content">' + html + '</div>';
+
+                renderLatest(latest);
+                document.getElementById('competitor-articles').innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,0.35);font-size:13px;">点击上方竞品公司查看历史消息</div>';
+            }).catch(() => {
+                document.getElementById('main').innerHTML = '<div class="page-content"><div style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-size:13px;">暂无数据</div></div>';
+            });
+        }
+
+        function renderLatest(articles) {
+            const container = document.getElementById('latest-section');
+            if (!container) return;
+            if (articles.length === 0) {
+                container.innerHTML = '<div class="section-title" style="margin-bottom:12px;">📰 最新消息</div><div style="text-align:center;padding:16px;color:rgba(255,255,255,0.4);font-size:13px;">暂无竞品文章</div>';
+                return;
+            }
+            container.innerHTML = '<div class="section-title" style="margin-bottom:12px;">📰 最新消息</div>' +
+                articles.map((item, i) => `
+                    <div class="card" onclick="openUrl('${item.url || ''}')" style="animation-delay:${i * 0.05}s">
+                        <div class="card-title">${item.title || '无标题'}</div>
+                        <div class="card-meta">${item.account_name || '公众号'} · ${item.publish_date || ''}</div>
+                        ${item.summary ? `<div class="card-stats">${item.summary}</div>` : ''}
+                    </div>
+                `).join('');
+        }
+
+        let activeTag = null;
+        function filterByCompany(name, tagEl) {
+            if (activeTag) {
+                activeTag.classList.remove('active');
+                activeTag.style.background = '';
+                activeTag.style.borderColor = '';
+                activeTag.style.color = '';
+            }
+            tagEl.classList.add('active');
+            tagEl.style.background = 'rgba(64,224,208,0.2)';
+            tagEl.style.borderColor = 'rgba(64,224,208,0.6)';
+            tagEl.style.color = '#40E0D0';
+            activeTag = tagEl;
+
+            const container = document.getElementById('competitor-articles');
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.5);">加载中...</div>';
+            fetch('/api/wechat/list').then(r => r.json()).then(data => {
+                const filtered = (data || []).filter(item => item.account_name === name);
+                if (filtered.length === 0) {
+                    container.innerHTML = `<div class="section-title" style="margin-bottom:12px;">📋 ${name} 历史消息</div><div style="text-align:center;padding:16px;color:rgba(255,255,255,0.4);font-size:13px;">暂无文章</div>`;
+                } else {
+                    container.innerHTML = `<div class="section-title" style="margin-bottom:12px;">📋 ${name} 历史消息</div>` +
+                        filtered.map((item, i) => `
+                            <div class="card" onclick="openUrl('${item.url || ''}')" style="animation-delay:${i * 0.05}s">
+                                <div class="card-title">${item.title || '无标题'}</div>
+                                <div class="card-meta">${item.account_name || '公众号'} · ${item.publish_date || ''}</div>
+                                ${item.summary ? `<div class="card-stats">${item.summary}</div>` : ''}
+                            </div>
+                        `).join('');
+                }
+            });
+        }
+
+        function loadHot() {
+            document.getElementById('main').innerHTML = '<div class="page-content"><div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">加载中...</div></div>';
+
+            Promise.all([
+                fetch('/api/hot-topics/weibo').then(r => r.json()),
+                fetch('/api/hot-topics/douyin').then(r => r.json()),
+                fetch('/api/hot-topics/zhihu').then(r => r.json()),
+            ]).then(([weibo, douyin, zhihu]) => {
+                const platforms = [
+                    {name:'微博',icon:'📱',platform:'weibo',color:'#FDCB2D',data:weibo.data||[]},
+                    {name:'抖音',icon:'🎵',platform:'douyin',color:'#fff',data:douyin.data||[]},
+                    {name:'知乎',icon:'💬',platform:'zhihu',color:'#0084FF',data:zhihu.data||[]},
+                ];
+                document.getElementById('main').innerHTML = '<div class="page-content">' + platforms.map((p, pi) => `
+                    <div class="platform-group" style="animation-delay:${pi * 0.08}s">
+                        <div class="platform-title ${p.name==='微博'?'weibo':p.name==='抖音'?'douyin':'zhihu'}">
+                            <span class="platform-icon">${p.icon}</span>
+                            <span class="platform-name">${p.name} 热门话题</span>
+                        </div>
+                        <div>${(p.data.length > 0 ? p.data : [{word:'暂无数据'}]).slice(0,10).map((t, i) => `<span class="tag" onclick="openHotUrl('${p.platform}','${encodeURIComponent(t.word)}','${t.url||''}')" style="animation-delay:${i * 0.04}s">#${t.word}</span>`).join('')}</div>
+                    </div>
+                `).join('') + '</div>';
+            }).catch(() => {
+                document.getElementById('main').innerHTML = '<div class="page-content"><div style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-size:13px;">加载失败，请稍后重试</div></div>';
+            });
+        }
+
+        function openHotUrl(platform, word, url) {
+            if (url && url.startsWith('http')) {
+                window.open(url, '_blank');
+            } else {
+                const urls = {
+                    'weibo': `https://s.weibo.com/weibo?q=${word}`,
+                    'douyin': `https://www.douyin.com/search/${word}`,
+                    'zhihu': `https://www.zhihu.com/search?q=${word}`,
+                };
+                window.open(urls[platform], '_blank');
+            }
+        }
+
+        function openUrl(url) {
+            if (!url || url === 'undefined') return;
+            window.open(url, '_blank');
+        }
+
+        function searchTag(platform, tag) {
+            const urls = {
+                '小红书':'https://www.xiaohongshu.com/search_result?keyword=',
+                '微博':'https://s.weibo.com/weibo?q=',
+                '抖音':'https://www.douyin.com/search/',
+                '知乎':'https://www.zhihu.com/search?q=',
+                '脉脉':'https://maimai.cn/search/'
+            };
+            window.open(urls[platform] + encodeURIComponent(tag), '_blank');
+        }
+
+        // 默认加载我的内容
+        loadMine();
+    </script>
+</body>
+</html>

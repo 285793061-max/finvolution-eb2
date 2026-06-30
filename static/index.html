@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>信也科技舆情监测中心</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: transparent;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 背景效果 - 波纹流动 */
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            background: linear-gradient(180deg, #020205 0%, #05050a 100%);
+            contain: layout paint;
+        }
+
+        /* 波纹层 */
+        .ripple-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            will-change: transform;
+            pointer-events: none;
+        }
+
+        /* 同心圆波纹 */
+        .ripple-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            margin-left: -50px;
+            margin-top: -50px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,212,255,0.5);
+            /* animation: rippleExpand 8s ease-out infinite; */
+            will-change: transform, opacity;
+        }
+
+        .ripple-circle:nth-of-type(1) { animation-delay: 0s; }
+        .ripple-circle:nth-of-type(2) { animation-delay: -2s; }
+        .ripple-circle:nth-of-type(3) { animation-delay: -4s; }
+        .ripple-circle:nth-of-type(4) { animation-delay: -6s; }
+
+        @keyframes rippleExpand {
+            0% { width: 100px; height: 100px; margin-left: -50px; margin-top: -50px; opacity: 0.6; border-width: 1px; }
+            50% { opacity: 0.25; border-color: #8a2be2; }
+            100% { width: 80vmax; height: 80vmax; margin-left: -40vmax; margin-top: -40vmax; opacity: 0; border-width: 0px; }
+        }
+
+        /* 波形曲线 */
+        .wave-curve {
+            position: absolute;
+            left: -50%;
+            width: 200%;
+            height: 80px;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(0,212,255,0.04) 25%,
+                rgba(138,43,226,0.04) 50%,
+                rgba(0,212,255,0.04) 75%,
+                transparent 100%
+            );
+            filter: blur(6px);
+            /* animation: waveSlide 7s ease-in-out infinite; */
+        }
+
+        .wave-curve:nth-of-type(6) { top: 20%; animation-delay: 0s; }
+        .wave-curve:nth-of-type(7) { top: 35%; animation-delay: -1.5s; filter: blur(8px); }
+        .wave-curve:nth-of-type(8) { top: 50%; animation-delay: -3s; }
+        .wave-curve:nth-of-type(9) { top: 65%; animation-delay: -4.5s; filter: blur(8px); }
+        .wave-curve:nth-of-type(10) { top: 80%; animation-delay: -6s; }
+
+        @keyframes waveSlide {
+            0%, 100% { transform: translateX(0) skewX(-5deg); opacity: 0.4; }
+            25% { opacity: 0.7; }
+            50% { transform: translateX(15%) skewX(-5deg); opacity: 0.5; border-color: #8a2be2; }
+            75% { opacity: 0.7; }
+        }
+
+        /* 斜向流光 */
+        .diagonal-beam {
+            position: absolute;
+            width: 200%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.15), rgba(138,43,226,0.15), transparent);
+            transform: rotate(25deg);
+            filter: blur(2px);
+            /* animation: diagonalFlow 10s linear infinite; */
+            opacity: 0.2;
+        }
+
+        .diagonal-beam:nth-of-type(11) { top: 0; left: -50%; animation-delay: 0s; }
+        .diagonal-beam:nth-of-type(12) { top: 30%; left: -30%; animation-delay: -1.5s; }
+        .diagonal-beam:nth-of-type(13) { top: 60%; left: -40%; animation-delay: -3s; }
+        .diagonal-beam:nth-of-type(14) { top: 90%; left: -20%; animation-delay: -4.5s; }
+
+        @keyframes diagonalFlow {
+            0% { transform: rotate(25deg) translateX(-100%); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.6; }
+            100% { transform: rotate(25deg) translateX(100%); opacity: 0; }
+        }
+
+        /* 脉冲光点 */
+        .pulse-dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #00d4ff;
+            box-shadow: 0 0 8px #00d4ff;
+            /* animation: pulseGlow 4s ease-in-out infinite; */
+        }
+
+        .pulse-dot:nth-of-type(15) { top: 25%; left: 20%; animation-delay: 0s; }
+        .pulse-dot:nth-of-type(16) { top: 45%; left: 70%; animation-delay: -1s; background: #8a2be2; box-shadow: 0 0 15px #8a2be2, 0 0 30px rgba(0,212,255,0.5); }
+        .pulse-dot:nth-of-type(17) { top: 65%; left: 40%; animation-delay: -2s; }
+        .pulse-dot:nth-of-type(18) { top: 85%; left: 60%; animation-delay: -0.5s; background: #8a2be2; box-shadow: 0 0 15px #8a2be2, 0 0 30px rgba(0,212,255,0.5); }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.5); opacity: 1; }
+        }
+
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0,212,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(0,212,255,0.6), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(2px 2px at 130px 80px, rgba(138,43,226,0.6), transparent),
+                radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1px 1px at 200px 50px, rgba(0,212,255,0.7), transparent),
+                radial-gradient(2px 2px at 250px 160px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 300px 90px, rgba(138,43,226,0.5), transparent);
+            background-size: 350px 200px;
+            /* animation: starTwinkle 4s ease-in-out infinite; */
+        }
+
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        /* 梦幻光晕 */
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            /* animation: floatOrb 8s ease-in-out infinite; */
+        }
+
+        .glow-orb:first-of-type {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0,212,255,0.4) 0%, transparent 70%);
+            top: 10%;
+            right: -100px;
+        }
+
+        .glow-orb:last-of-type {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(138,43,226,0.3) 0%, transparent 70%);
+            bottom: 20%;
+            left: -50px;
+            animation-delay: -4s;
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -20px); }
+        }
+
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 212, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* 玻璃拟态卡片 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow:
+                0 4px 30px rgba(0, 0, 0, 0.1),
+                inset 0 0 20px rgba(255, 255, 255, 0.02);
+        }
+
+        /* 导航 */
+        .nav-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(10, 10, 20, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0, 212, 255, 0.1);
+            transform: translateZ(0);
+            transition: background 0.3s ease;
+        }
+
+        .nav-header.scrolled {
+            background: rgba(10, 10, 20, 0.95);
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2, #00d4ff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            white-space: nowrap;
+            margin-right: 20px;
+            /* animation: gradientShift 6s ease infinite; */
+            transform: translateZ(0);
+            will-change: background-position;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .crawl-btn {
+            margin-left: auto;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(138, 43, 226, 0.2));
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            border-radius: 8px;
+            color: #00d4ff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+
+        .crawl-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(138, 43, 226, 0.3));
+        }
+
+        .crawl-btn:active {
+            transform: scale(0.98);
+        }
+
+        .crawl-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .crawl-btn.loading {
+            /* animation: pulse 1.5s ease-in-out infinite; */
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+            50% { box-shadow: 0 0 30px rgba(0, 212, 255, 0.6); }
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 5px;
+            margin-left: 15px;
+            overflow-x: auto;
+            flex: 1;
+            padding-right: 5px;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-tab {
+            padding: 8px 14px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            white-space: nowrap;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .nav-tab:hover {
+            background: rgba(0, 212, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .nav-tab.active {
+            color: #00d4ff;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(138, 43, 226, 0.15));
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+
+        /* 主内容 */
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 70px 15px 90px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        /* 统计卡片 - 监测风格 */
+        .stat-card {
+            background: rgba(8, 12, 20, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 12px;
+            padding: 20px 16px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stat-card:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 212, 255, 0.2);
+        }
+
+        .stat-card:hover::after {
+            opacity: 1;
+        }
+
+        .stat-num {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        /* 数据列表 - 网格布局 */
+        .data-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        /* 数据项 - 监测卡片风格 */
+        .data-item {
+            background: rgba(10, 15, 25, 0.6);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            will-change: transform;
+        }
+
+        .data-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #00d4ff, #8a2be2);
+            opacity: 0;
+        }
+
+        .data-item:hover {
+            background: rgba(0, 212, 255, 0.08);
+            border-color: rgba(0, 212, 255, 0.35);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .item-platform {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(138, 43, 226, 0.2));
+            color: #00d4ff;
+            font-weight: 500;
+        }
+
+        .item-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .item-title {
+            font-size: 15px;
+            color: #fff;
+            margin-bottom: 10px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-weight: 500;
+            word-break: break-word;
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .item-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .item-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .item-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            padding: 10px 18px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(138, 43, 226, 0.15));
+            color: #00d4ff;
+            border-radius: 10px;
+            font-size: 13px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .item-link-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(138, 43, 226, 0.25));
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        /* 详情页 */
+        .detail-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(5, 5, 15, 0.95);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            z-index: 200;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .detail-page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .detail-header {
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 20, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .back-btn {
+            font-size: 24px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            cursor: pointer;
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .detail-title {
+            flex: 1;
+            font-size: 17px;
+            font-weight: 600;
+            margin-left: 15px;
+            color: #fff;
+        }
+
+        .detail-content {
+            padding: 25px 20px;
+        }
+
+        .detail-info {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+        }
+
+        .detail-info-item {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .detail-text {
+            font-size: 15px;
+            line-height: 1.9;
+            color: rgba(255, 255, 255, 0.85);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .open-link-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(138, 43, 226, 0.15));
+            color: #00d4ff;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 14px;
+            font-size: 15px;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 25px;
+            transition: all 0.3s;
+        }
+
+        .open-link-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(138, 43, 226, 0.25));
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* 筛选器样式优化 */
+        .filter-select {
+            background: rgba(255, 255, 255, 0.04) !important;
+            backdrop-filter: blur(15px);
+            color: #fff !important;
+            border: 1px solid rgba(0, 212, 255, 0.2) !important;
+            padding: 10px 14px !important;
+            border-radius: 10px !important;
+            font-size: 13px !important;
+            outline: none !important;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-select:hover, .filter-select:focus {
+            border-color: rgba(0, 212, 255, 0.5) !important;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.15);
+        }
+
+        /* 情绪选择器 */
+        .sentiment-select {
+            background: rgba(255, 255, 255, 0.04) !important;
+            border: 1px solid var(--sentiment-color, rgba(0, 212, 255, 0.4)) !important;
+        }
+
+        /* 底部导航 */
+        .tab-bar {
+            display: none;  /* 隐藏底部导航，与顶部导航重复 */
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 8px 15px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 10px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .tab-item.active {
+            color: #40E0D0;
+        }
+
+        .tab-icon {
+            font-size: 20px;
+        }
+
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 14px;
+        }
+
+        /* Section标题 */
+        .section-title {
+            font-size: 14px;
+            margin-bottom: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* 区块标题 */
+        .block-title {
+            font-size: 15px;
+            margin-bottom: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            padding-left: 12px;
+            border-left: 3px solid #00d4ff;
+        }
+
+        /* 动画keyframes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 选择框选项优化 */
+        option {
+            background: #0a0a14;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects">
+        <div class="ripple-layer">
+            <div class="ripple-circle"></div>
+            <div class="ripple-circle"></div>
+            <div class="ripple-circle"></div>
+            <div class="ripple-circle"></div>
+        </div>
+        <div class="ripple-layer">
+            <div class="wave-curve"></div>
+            <div class="wave-curve"></div>
+            <div class="wave-curve"></div>
+            <div class="wave-curve"></div>
+            <div class="wave-curve"></div>
+        </div>
+        <div class="diagonal-beam"></div>
+        <div class="diagonal-beam"></div>
+        <div class="diagonal-beam"></div>
+        <div class="diagonal-beam"></div>
+        <div class="pulse-dot"></div>
+        <div class="pulse-dot"></div>
+        <div class="pulse-dot"></div>
+        <div class="pulse-dot"></div>
+        <div class="grid-lines"></div>
+    </div>
+
+    <!-- 顶部导航 -->
+    <nav class="nav-header">
+        <div class="logo"><span style="color:#00d4ff;">◉</span> 舆情监测中心</div>
+        <div class="nav-tabs">
+            <button class="nav-tab" data-page="overview">总览</button>
+            <button class="nav-tab" data-page="maimai">脉脉</button>
+            <button class="nav-tab" data-page="xiaohongshu">小红书</button>
+            <button class="nav-tab" data-page="dashboard">Dashboard</button>
+        </div>
+        <button class="crawl-btn" onclick="openLogin()" id="login-btn">🔐 登录平台</button>
+        <button class="crawl-btn" onclick="runCrawl()" id="crawl-btn">▶ 采集数据</button>
+    </nav>
+
+    <!-- 主内容 -->
+    <main class="content">
+        <!-- 总览 -->
+        <div class="page active" id="overview">
+            <div class="stats-grid">
+                <div class="stat-card" onclick="document.getElementById('overview-sentiment').value='all';filterOverview();" style="cursor:pointer;">
+                    <div class="stat-num" id="total-count">-</div>
+                    <div class="stat-label">总计</div>
+                </div>
+                <div class="stat-card" onclick="document.getElementById('overview-sentiment').value='positive';filterOverview();" style="cursor:pointer;">
+                    <div class="stat-num" id="positive-count">-</div>
+                    <div class="stat-label">正面</div>
+                </div>
+                <div class="stat-card" onclick="document.getElementById('overview-sentiment').value='negative';filterOverview();" style="cursor:pointer;">
+                    <div class="stat-num" id="negative-count">-</div>
+                    <div class="stat-label">负面</div>
+                </div>
+                <div class="stat-card" onclick="document.getElementById('overview-sentiment').value='neutral';filterOverview();" style="cursor:pointer;">
+                    <div class="stat-num" id="neutral-count">-</div>
+                    <div class="stat-label">中性</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                <select id="overview-sentiment" onchange="filterOverview()" class="filter-select">
+                    <option value="all">全部情绪</option>
+                    <option value="positive">正面</option>
+                    <option value="negative">负面</option>
+                    <option value="neutral">中性</option>
+                </select>
+                <select id="overview-time" onchange="filterOverview()" class="filter-select">
+                    <option value="all">全部时间</option>
+                    <option value="today">今天</option>
+                    <option value="week">本周</option>
+                    <option value="month">本月</option>
+                </select>
+                <select id="overview-source" onchange="filterOverview()" class="filter-select">
+                    <option value="all">全部来源</option>
+                    <option value="official">官方</option>
+                    <option value="external">非官方</option>
+                </select>
+            </div>
+
+            <h3 class="section-title">最新数据</h3>
+            <div class="data-list" id="latest-list">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- 脉脉 -->
+        <div class="page" id="maimai">
+            <div class="stats-grid">
+                <div class="stat-card" onclick="document.getElementById('maimai-sentiment').value='all';filterMaimai();" style="cursor:pointer;">
+                    <div class="stat-num" id="maimai-total">-</div>
+                    <div class="stat-label">总计</div>
+                </div>
+                <div class="stat-card" onclick="document.getElementById('maimai-sentiment').value='positive';filterMaimai();" style="cursor:pointer;">
+                    <div class="stat-num" id="maimai-positive">-</div>
+                    <div class="stat-label">正面</div>
+                </div>
+                <div class="stat-card" onclick="document.getElementById('maimai-sentiment').value='negative';filterMaimai();" style="cursor:pointer;">
+                    <div class="stat-num" id="maimai-negative">-</div>
+                    <div class="stat-label">负面</div>
+                </div>
+                <div class="stat-card" onclick="document.getElementById('maimai-sentiment').value='neutral';filterMaimai();" style="cursor:pointer;">
+                    <div class="stat-num" id="maimai-neutral">-</div>
+                    <div class="stat-label">中性</div>
+                </div>
+            </div>
+            <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                <select id="maimai-sentiment" onchange="filterMaimai()" class="filter-select">
+                    <option value="all">全部情绪</option>
+                    <option value="positive">正面</option>
+                    <option value="negative">负面</option>
+                    <option value="neutral">中性</option>
+                </select>
+                <select id="maimai-time" onchange="filterMaimai()" class="filter-select">
+                    <option value="all">全部时间</option>
+                    <option value="today">今天</option>
+                    <option value="week">本周</option>
+                    <option value="month">本月</option>
+                </select>
+                <select id="maimai-source" onchange="filterMaimai()" class="filter-select">
+                    <option value="all">全部来源</option>
+                    <option value="official">官方</option>
+                    <option value="external">非官方</option>
+                </select>
+            </div>
+            <h3 class="block-title">脉脉数据</h3>
+            <div class="data-list" id="maimai-list">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- 小红书 -->
+        <div class="page" id="xiaohongshu">
+            <div class="stats-grid">
+                <div class="stat-card" onclick="document.getElementById('xhs-sentiment').value='all';filterXhs();" style="cursor:pointer;">
+                    <div class="stat-num" id="xhs-total">-</div>
+                    <div class="stat-label">总计</div>
+                </div>
+                <div class="stat-card" onclick="document.getElementById('xhs-sentiment').value='positive';filterXhs();" style="cursor:pointer;">
+                    <div class="stat-num" id="xhs-positive">-</div>
+                    <div class="stat-label">正面</div>
+                </div>
+                <div class="stat-card" onclick="document.getElementById('xhs-sentiment').value='negative';filterXhs();" style="cursor:pointer;">
+                    <div class="stat-num" id="xhs-negative">-</div>
+                    <div class="stat-label">负面</div>
+                </div>
+                <div class="stat-card" onclick="document.getElementById('xhs-sentiment').value='neutral';filterXhs();" style="cursor:pointer;">
+                    <div class="stat-num" id="xhs-neutral">-</div>
+                    <div class="stat-label">中性</div>
+                </div>
+            </div>
+            <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                <select id="xhs-sentiment" onchange="filterXhs()" class="filter-select">
+                    <option value="all">全部情绪</option>
+                    <option value="positive">正面</option>
+                    <option value="negative">负面</option>
+                    <option value="neutral">中性</option>
+                </select>
+                <select id="xhs-time" onchange="filterXhs()" class="filter-select">
+                    <option value="all">全部时间</option>
+                    <option value="today">今天</option>
+                    <option value="week">本周</option>
+                    <option value="month">本月</option>
+                </select>
+                <select id="xhs-source" onchange="filterXhs()" class="filter-select">
+                    <option value="all">全部来源</option>
+                    <option value="official">官方</option>
+                    <option value="external">非官方</option>
+                </select>
+            </div>
+            <h3 class="block-title">小红书数据</h3>
+            <div class="data-list" id="xiaohongshu-list">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="page" id="dashboard">
+            <h3 class="block-title" style="margin-bottom:20px;">📊 数据分析看板</h3>
+            <div class="data-item" style="text-align:center;padding:30px;">
+                <div style="font-size:40px;margin-bottom:15px;">📊</div>
+                <div style="font-size:16px;color:#fff;margin-bottom:8px;">Streamlit 可视化 Dashboard</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:20px;">实时数据分析与可视化</div>
+                <a href="http://localhost:3002" class="item-link-btn" style="display:inline-flex;padding:14px 28px;font-size:14px;">
+                    🚀 打开 Dashboard
+                </a>
+            </div>
+            <p style="text-align:center;margin-top:15px;font-size:12px;color:rgba(255,255,255,0.4);">地址: http://localhost:3002</p>
+        </div>
+    </main>
+
+    <!-- 详情页 -->
+    <div class="detail-page" id="detail-page">
+        <div class="detail-header">
+            <button class="back-btn" onclick="closeDetail()">←</button>
+            <div class="detail-title">详情</div>
+        </div>
+        <div class="detail-content" id="detail-content">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+                let allData = [];
+
+        // 打开登录页面
+        function openLogin() {
+            window.open('http://localhost:8501', '_blank');
+        }
+
+        // 运行爬虫 - 先弹浏览器登录
+        async function runCrawl() {
+            if (!confirm('将弹出浏览器，请在其中登录脉脉/小红书，登录后数据会自动抓取。是否继续？')) {
+                return;
+            }
+
+            const btn = document.getElementById('crawl-btn');
+            btn.disabled = true;
+            btn.textContent = '请登录...';
+            btn.classList.add('loading');
+
+            try {
+                const resp = await fetch('/api/crawl', { method: 'POST' });
+                const result = await resp.json();
+                if (result.success) {
+                    alert('浏览器已弹出，请在浏览器中登录脉脉/小红书，登录后按回车，数据会自动导入');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('启动爬虫失败');
+            }
+
+            // 不关闭按钮，让用户知道在进行中
+        }
+
+        // 获取数据
+        async function fetchData() {
+            try {
+                const resp = await fetch('/api/data?limit=1000');
+                return await resp.json();
+            } catch (e) {
+                console.error(e);
+                return [];
+            }
+        }
+
+        // 获取统计
+        async function fetchStats() {
+            try {
+                const resp = await fetch('/api/stats');
+                return await resp.json();
+            } catch (e) {
+                return {total: 0, maimai: 0, xiaohongshu: 0};
+            }
+        }
+
+        // 渲染列表
+        function renderList(data, containerId) {
+            const container = document.getElementById(containerId);
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="empty">暂无数据</div>';
+                return;
+            }
+
+            const sentimentLabels = { positive: '正面', negative: '负面', neutral: '中性' };
+            const sentimentColors = { positive: '#52c41a', negative: '#ff4d4f', neutral: '#1890ff' };
+            const sentimentBg = { positive: 'rgba(82,196,26,0.15)', negative: 'rgba(255,77,79,0.15)', neutral: 'rgba(24,144,255,0.15)' };
+
+            // 只渲染前100条，避免卡顿
+            const displayData = data.slice(0, 100);
+            container.innerHTML = displayData.map(item => {
+                const sentimentColor = sentimentColors[item.sentiment_label] || '#666';
+                return `
+                <div class="data-item" onclick="showDetail(${item.id})">
+                    ${item.image ? `<img src="${item.image}" class="item-cover" style="width:100%;height:140px;object-fit:cover;border-radius:12px;margin-bottom:12px;opacity:0.9;">` : ''}
+                    <div class="item-header">
+                        <span class="item-platform">${item.platform === 'maimai' ? '💬 脉脉' : '📕 小红书'}</span>
+                        <span class="item-time">${item.publish_time || item.crawl_time || ''}</span>
+                    </div>
+                    <div class="item-title">${item.title || '无标题'}</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.55);margin:10px 0;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${item.content || ''}</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                        <select onchange="updateSentiment(${item.id}, this.value);event.stopPropagation();" class="filter-select sentiment-select" style="--sentiment-color:${sentimentColor}" onclick="event.stopPropagation();">
+                            <option value="positive" ${item.sentiment_label === 'positive' ? 'selected' : ''}>✅ 正面</option>
+                            <option value="negative" ${item.sentiment_label === 'negative' ? 'selected' : ''}>❌ 负面</option>
+                            <option value="neutral" ${item.sentiment_label === 'neutral' ? 'selected' : ''}>➖ 中性</option>
+                        </select>
+                        <div class="item-stats">
+                            <span>❤️ ${item.likes || 0}</span>
+                            <span>💬 ${item.comments || 0}</span>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+
+            // 显示加载更多提示
+            if (data.length > 100) {
+                container.innerHTML += '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.5);">显示前100条，共' + data.length + '条数据</div>';
+            }
+        }
+
+        // 显示详情
+        async function showDetail(id) {
+            const item = allData.find(d => d.id === id);
+            console.log('showDetail item:', item);
+            if (!item) return;
+
+            const sentimentLabels = { positive: '正面', negative: '负面', neutral: '中性' };
+            const sentimentColors = { positive: '#52c41a', negative: '#ff4d4f', neutral: '#1890ff' };
+            const sentimentBg = { positive: 'rgba(82,196,26,0.15)', negative: 'rgba(255,77,79,0.15)', neutral: 'rgba(24,144,255,0.15)' };
+
+            const content = document.getElementById('detail-content');
+            const sentimentColor = sentimentColors[item.sentiment_label] || '#00d4ff';
+            content.innerHTML = `
+                <div class="detail-info">
+                    <span class="detail-info-item">🏷️ ${item.platform === 'maimai' ? '脉脉' : '小红书'}</span>
+                    <span class="detail-info-item">👍 ${item.likes || 0}</span>
+                    <span class="detail-info-item">💬 ${item.comments || 0}</span>
+                </div>
+                <div style="margin-bottom:15px;display:flex;gap:10px;align-items:center;">
+                    <span style="color:rgba(255,255,255,0.6);">情绪:</span>
+                    <select id="sentiment-select" onchange="updateSentiment(${item.id}, this.value)" class="filter-select sentiment-select" style="--sentiment-color:${sentimentColor}">
+                        <option value="positive" ${item.sentiment_label === 'positive' ? 'selected' : ''}>✅ 正面</option>
+                        <option value="negative" ${item.sentiment_label === 'negative' ? 'selected' : ''}>❌ 负面</option>
+                        <option value="neutral" ${item.sentiment_label === 'neutral' ? 'selected' : ''}>➖ 中性</option>
+                    </select>
+                </div>
+                ${item.image ? `<img src="${item.image}" style="width:100%;max-height:300px;object-fit:contain;border-radius:14px;margin-bottom:20px;opacity:0.95;box-shadow:0 8px 30px rgba(0,0,0,0.3);">` : ''}
+                <h3 style="font-size:18px;margin-bottom:18px;color:#fff;line-height:1.4;font-weight:600;">${item.title || '无标题'}</h3>
+                <div class="detail-text">${item.content || '无内容'}</div>
+                ${item.url ? `<a href="${item.url}" class="open-link-btn" target="_blank">🔗 阅读原文</a>` : '<p style="text-align:center;margin-top:25px;color:rgba(255,255,255,0.4);">暂无原文链接</p>'}
+                <button onclick="deleteItem(${item.id})" style="margin-top:20px;background:rgba(255,77,79,0.2);border:1px solid #ff4d4f;color:#ff4d4f;padding:10px 20px;border-radius:8px;cursor:pointer;width:100%;">🗑️ 删除此条</button>
+            `;
+
+            document.getElementById('detail-page').classList.add('active');
+        }
+
+        // 关闭详情
+        function closeDetail() {
+            document.getElementById('detail-page').classList.remove('active');
+        }
+
+        // 更新情绪
+        async function updateSentiment(id, label) {
+            try {
+                const resp = await fetch('/api/sentiment/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, sentiment_label: label })
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    // 更新本地数据
+                    const item = allData.find(d => d.id === id);
+                    if (item) {
+                        item.sentiment_label = label;
+                    }
+                    // 刷新列表
+                    filterOverview();
+                    // 刷新详情页
+                    showDetail(id);
+                    alert('已更新');
+                }
+            } catch (e) {
+                alert('更新失败: ' + e.message);
+            }
+        }
+
+        // 删除数据
+        async function deleteItem(id) {
+            if (!confirm('确定要删除这条数据吗？')) return;
+            try {
+                const resp = await fetch('/api/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    // 从本地数据中移除
+                    allData = allData.filter(d => d.id !== id);
+                    // 刷新列表
+                    filterOverview();
+                    // 关闭详情页
+                    closeDetail();
+                    alert('已删除');
+                }
+            } catch (e) {
+                alert('删除失败: ' + e.message);
+            }
+        }
+
+        // 切换页面
+        function switchPage(pageId) {
+            // 点击总览时刷新当前页面
+            if (pageId === 'overview') {
+                window.location.reload();
+                return;
+            }
+            // 点击首页时跳转到雇主品牌管理首页
+            if (pageId === 'home') {
+                window.location.replace('/');
+                return;
+            }
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === pageId));
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.page === pageId));
+            document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === pageId));
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 导航栏滚动增强
+            const navHeader = document.querySelector('.nav-header');
+            let ticking = false;
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    requestAnimationFrame(() => {
+                        navHeader.classList.toggle('scrolled', window.scrollY > 10);
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            });
+
+            // 默认高亮总览
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === 'overview'));
+
+            allData = await fetchData();
+
+            // 计算情绪统计
+            const positiveCount = allData.filter(d => d.sentiment_label === 'positive').length;
+            const negativeCount = allData.filter(d => d.sentiment_label === 'negative').length;
+            const neutralCount = allData.filter(d => d.sentiment_label === 'neutral').length;
+
+            document.getElementById('total-count').textContent = allData.length || 0;
+            document.getElementById('positive-count').textContent = positiveCount || 0;
+            document.getElementById('negative-count').textContent = negativeCount || 0;
+            document.getElementById('neutral-count').textContent = neutralCount || 0;
+
+            const maimaiData = allData.filter(d => d.platform === 'maimai');
+            const xhsData = allData.filter(d => d.platform === 'xiaohongshu');
+
+            // 脉脉统计
+            const mPos = maimaiData.filter(d => d.sentiment_label === 'positive').length;
+            const mNeg = maimaiData.filter(d => d.sentiment_label === 'negative').length;
+            const mNeu = maimaiData.filter(d => d.sentiment_label === 'neutral').length;
+            document.getElementById('maimai-total').textContent = maimaiData.length;
+            document.getElementById('maimai-positive').textContent = mPos;
+            document.getElementById('maimai-negative').textContent = mNeg;
+            document.getElementById('maimai-neutral').textContent = mNeu;
+
+            // 小红书统计
+            const xPos = xhsData.filter(d => d.sentiment_label === 'positive').length;
+            const xNeg = xhsData.filter(d => d.sentiment_label === 'negative').length;
+            const xNeu = xhsData.filter(d => d.sentiment_label === 'neutral').length;
+            document.getElementById('xhs-total').textContent = xhsData.length;
+            document.getElementById('xhs-positive').textContent = xPos;
+            document.getElementById('xhs-negative').textContent = xNeg;
+            document.getElementById('xhs-neutral').textContent = xNeu;
+
+            renderList(allData.slice(0, 20), 'latest-list');
+            renderList(maimaiData.slice(0, 30), 'maimai-list');
+            renderList(xhsData.slice(0, 30), 'xiaohongshu-list');
+
+            // 筛选函数
+            window.filterMaimai = function() {
+                const sentiment = document.getElementById('maimai-sentiment').value;
+                const timeRange = document.getElementById('maimai-time').value;
+                const source = document.getElementById('maimai-source').value;
+                let filtered = allData.filter(d => d.platform === 'maimai');
+
+                if (sentiment !== 'all') filtered = filtered.filter(d => d.sentiment_label === sentiment);
+                if (timeRange !== 'all') filtered = filtered.filter(d => isInTimeRange(d.publish_time, timeRange));
+                if (source !== 'all') filtered = filtered.filter(d => d.source_type === source);
+
+                renderList(filtered.slice(0, 30), 'maimai-list');
+            };
+            window.filterXhs = function() {
+                const sentiment = document.getElementById('xhs-sentiment').value;
+                const timeRange = document.getElementById('xhs-time').value;
+                const source = document.getElementById('xhs-source').value;
+                let filtered = allData.filter(d => d.platform === 'xiaohongshu');
+
+                if (sentiment !== 'all') filtered = filtered.filter(d => d.sentiment_label === sentiment);
+                if (timeRange !== 'all') filtered = filtered.filter(d => isInTimeRange(d.publish_time, timeRange));
+                if (source !== 'all') filtered = filtered.filter(d => d.source_type === source);
+
+                renderList(filtered.slice(0, 30), 'xiaohongshu-list');
+            };
+            window.filterOverview = function() {
+                const sentiment = document.getElementById('overview-sentiment').value;
+                const timeRange = document.getElementById('overview-time').value;
+                const source = document.getElementById('overview-source').value;
+                let filtered = allData;
+
+                if (sentiment !== 'all') filtered = filtered.filter(d => d.sentiment_label === sentiment);
+                if (timeRange !== 'all') filtered = filtered.filter(d => isInTimeRange(d.publish_time, timeRange));
+                if (source !== 'all') filtered = filtered.filter(d => d.source_type === source);
+
+                renderList(filtered.slice(0, 20), 'latest-list');
+            };
+
+            // 时间范围判断函数
+            function isInTimeRange(publishTime, range) {
+                if (!publishTime) return false;
+                const date = new Date(publishTime.replace(' ', 'T'));
+                const now = new Date();
+                if (range === 'today') return date.toDateString() === now.toDateString();
+                if (range === 'week') {
+                    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    return date >= weekAgo;
+                }
+                if (range === 'month') {
+                    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    return date >= monthAgo;
+                }
+                return true;
+            }
+
+            // 绑定导航点击事件
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    switchPage(this.dataset.page);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

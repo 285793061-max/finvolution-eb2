@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>雇主品牌管理后台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #050510; color: #fff; min-height: 100vh; overflow-x: hidden; }
+
+        /* 梦幻科技背景 - 波纹流动 */
+        .bg-effects { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; background: linear-gradient(180deg, #050508 0%, #080810 100%); }
+
+        /* 波纹层 */
+        .ripple-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* 同心圆波纹 */
+        .ripple-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border-radius: 50%;
+            border: 1px solid rgba(0,212,255,0.12);
+            animation: rippleExpand 10s ease-out infinite;
+        }
+        .ripple-circle:nth-of-type(1) { animation-delay: 0s; }
+        .ripple-circle:nth-of-type(2) { animation-delay: -2.5s; }
+        .ripple-circle:nth-of-type(3) { animation-delay: -5s; }
+        .ripple-circle:nth-of-type(4) { animation-delay: -7.5s; }
+
+        @keyframes rippleExpand {
+            0% { width: 0; height: 0; margin-left: 0; margin-top: 0; opacity: 0.5; border-width: 1px; }
+            50% { opacity: 0.25; border-color: #8a2be2; }
+            100% { width: 150vmax; height: 150vmax; margin-left: -75vmax; margin-top: -75vmax; opacity: 0; border-width: 0px; }
+        }
+
+        /* 波形曲线 */
+        .home-wave {
+            position: absolute;
+            left: -50%;
+            width: 200%;
+            height: 80px;
+            background: linear-gradient(90deg, transparent 0%, rgba(0,212,255,0.05) 25%, rgba(138,43,226,0.07) 50%, rgba(0,212,255,0.05) 75%, transparent 100%);
+            filter: blur(5px);
+            animation: homeWaveSlide 8s ease-in-out infinite;
+        }
+        .home-wave:nth-of-type(6) { top: 20%; animation-delay: 0s; }
+        .home-wave:nth-of-type(7) { top: 35%; animation-delay: -2s; }
+        .home-wave:nth-of-type(8) { top: 50%; animation-delay: -4s; }
+        .home-wave:nth-of-type(9) { top: 65%; animation-delay: -6s; }
+
+        @keyframes homeWaveSlide {
+            0%, 100% { transform: translateX(0) skewX(-3deg); opacity: 0.4; }
+            50% { transform: translateX(10%) skewX(-3deg); opacity: 0.6; }
+        }
+
+        /* 脉冲光点 */
+        .home-dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #00d4ff;
+            box-shadow: 0 0 10px #00d4ff;
+            animation: homePulse 3s ease-in-out infinite;
+        }
+        .home-dot:nth-of-type(10) { top: 25%; left: 25%; animation-delay: 0s; }
+        .home-dot:nth-of-type(11) { top: 45%; left: 65%; animation-delay: -1s; background: #8a2be2; box-shadow: 0 0 10px #8a2be2; }
+        .home-dot:nth-of-type(12) { top: 70%; left: 40%; animation-delay: -2s; }
+
+        @keyframes homePulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.8); opacity: 1; }
+        }
+
+        /* 极光流动 */
+        .aurora {
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: linear-gradient(120deg,
+                transparent 0%, rgba(0,212,255,0.1) 20%,
+                rgba(138,43,226,0.15) 40%, rgba(0,212,255,0.1) 60%,
+                transparent 100%);
+            animation: auroraFlow 18s ease-in-out infinite;
+        }
+        @keyframes auroraFlow {
+            0%, 100% { transform: translate(-10%, -10%) rotate(0deg); }
+            33% { transform: translate(-5%, -15%) rotate(120deg); }
+            66% { transform: translate(-15%, -5%) rotate(240deg); }
+        }
+
+        /* 星空 */
+        .stars {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-image:
+                radial-gradient(2px 2px at 30px 50px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(2px 2px at 100px 120px, rgba(0,212,255,0.6), transparent),
+                radial-gradient(1px 1px at 180px 80px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(2px 2px at 250px 160px, rgba(138,43,226,0.6), transparent),
+                radial-gradient(1px 1px at 320px 40px, rgba(255,255,255,0.5), transparent);
+            background-size: 400px 250px;
+            animation: starTwinkle 5s ease-in-out infinite;
+        }
+        @keyframes starTwinkle { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+
+        /* 光晕球 */
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: floatOrb 10s ease-in-out infinite;
+        }
+        .glow-orb:first-of-type {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(0,212,255,0.3) 0%, transparent 70%);
+            top: 5%; right: -150px;
+        }
+        .glow-orb:last-of-type {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(138,43,226,0.25) 0%, transparent 70%);
+            bottom: 10%; left: -100px;
+            animation-delay: -5s;
+        }
+        @keyframes floatOrb { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
+
+        .grid-lines {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                linear-gradient(rgba(0,212,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* Header */
+        .header {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            background: rgba(10, 10, 20, 0.75);
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(0,212,255,0.15);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; z-index: 100;
+            box-shadow: 0 2px 30px rgba(0,212,255,0.1);
+        }
+        .logo {
+            font-size: 19px; font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2, #00d4ff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease infinite;
+        }
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-avatar {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 14px; font-weight: bold;
+            box-shadow: 0 0 20px rgba(0,212,255,0.4);
+        }
+
+        .content { padding-top: 75px; padding-bottom: 85px; min-height: 100vh; }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* Tab Bar */
+        .tab-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 75px;
+            background: rgba(10, 10, 20, 0.8);
+            backdrop-filter: blur(25px);
+            border-top: 1px solid rgba(0,212,255,0.15);
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 100;
+        }
+        .tab-item {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: 10px 14px; color: rgba(255,255,255,0.45);
+            font-size: 10px; cursor: pointer; background: none; border: none;
+            text-decoration: none; transition: all 0.3s;
+            border-radius: 12px;
+        }
+        .tab-item:hover { color: rgba(255,255,255,0.7); background: rgba(0,212,255,0.1); }
+        .tab-item.active { color: #00d4ff; background: rgba(0,212,255,0.15); }
+        .tab-icon { font-size: 22px; }
+
+        /* Module Cards - 玻璃拟态 */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 0 16px;
+        }
+        .module-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0,212,255,0.1);
+            border-radius: 18px;
+            padding: 24px 18px;
+            cursor: pointer;
+            transition: all 0.35s;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .module-card::before {
+            content: ''; position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+        .module-card:hover::before { left: 100%; }
+        .module-card:hover {
+            border-color: rgba(0,212,255,0.35);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(0,212,255,0.2);
+            background: rgba(0,212,255,0.06);
+        }
+        .module-card.locked { opacity: 0.45; cursor: not-allowed; }
+        .module-card.locked:hover { transform: none; box-shadow: none; }
+        .module-icon { font-size: 36px; margin-bottom: 12px; }
+        .module-name { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+        .module-desc { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 12px; line-height: 1.5; }
+        .module-status { font-size: 12px; padding: 4px 10px; border-radius: 10px; display: inline-block; }
+        .module-status.online { color: #00d4ff; background: rgba(0,212,255,0.15); }
+        .module-status.locked { color: #9ca3af; background: rgba(156,163,175,0.15); }
+
+        .page-title {
+            font-size: 20px; font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 18px;
+        }
+
+        /* 数据看板 - 现代风格 */
+        .stats-dashboard {
+            display: flex;
+            justify-content: space-around;
+            align-items: stretch;
+            background: rgba(255,255,255,0.035);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(0,212,255,0.12);
+            border-radius: 24px;
+            padding: 28px 20px;
+            margin: 0;
+            gap: 8px;
+        }
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            padding: 16px 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .stat-item:hover {
+            background: rgba(255,255,255,0.06);
+            transform: translateY(-3px);
+        }
+        .stat-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: currentColor;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        .stat-item:hover::after { width: 60%; }
+        .stat-pos:hover { box-shadow: 0 8px 30px rgba(82,196,26,0.2); }
+        .stat-neg:hover { box-shadow: 0 8px 30px rgba(255,77,79,0.2); }
+        .stat-neu:hover { box-shadow: 0 8px 30px rgba(24,144,255,0.2); }
+        .stat-total:hover { box-shadow: 0 8px 30px rgba(0,212,255,0.2); }
+        .stat-val {
+            display: block;
+            font-size: 42px;
+            font-weight: 700;
+            text-shadow: 0 0 30px currentColor;
+            line-height: 1;
+        }
+        .stat-lbl {
+            display: block;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        #dash-pos { color: #52c41a; }
+        #dash-neg { color: #ff4d4f; }
+        #dash-neu { color: #1890ff; }
+        #dash-total { color: #00d4ff; }
+
+        /* 悬停预览弹窗 */
+        .sentiment-popup {
+            background: rgba(20,20,35,0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .popup-title {
+            padding: 14px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .popup-item {
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .popup-item:hover { background: rgba(255,255,255,0.05); }
+        .popup-item:last-child { border-bottom: none; }
+        .popup-item-title {
+            font-size: 13px;
+            color: #fff;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .popup-item-meta {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+        }
+        .popup-empty {
+            padding: 30px;
+            text-align: center;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* 按钮 */
+        .btn-primary {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(138,43,226,0.2));
+            border: 1px solid rgba(0,212,255,0.4);
+            border-radius: 10px;
+            color: #00d4ff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(0,212,255,0.3), rgba(138,43,226,0.3));
+            box-shadow: 0 0 25px rgba(0,212,255,0.4);
+        }
+        .btn-danger {
+            background: rgba(255,107,107,0.15);
+            border: 1px solid rgba(255,107,107,0.4);
+            color: #ff6b6b;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-danger:hover { background: rgba(255,107,107,0.25); }
+
+        /* 输入框 */
+        input {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            color: #fff;
+            border: 1px solid rgba(0,212,255,0.2);
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        input:focus { border-color: rgba(0,212,255,0.5); box-shadow: 0 0 20px rgba(0,212,255,0.15); }
+        textarea, select {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            color: #fff;
+            border: 1px solid rgba(0,212,255,0.2);
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        textarea { min-height: 88px; resize: vertical; line-height: 1.5; }
+        select option { background: #10101c; color: #fff; }
+        textarea:focus, select:focus { border-color: rgba(0,212,255,0.5); box-shadow: 0 0 20px rgba(0,212,255,0.15); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: rgba(20,20,35,0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 18px;
+            padding: 25px;
+            width: 90%;
+            max-width: 380px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Iframe容器 */
+        .iframe-container {
+            background: rgba(10,10,18,0.9);
+            border: 1px solid rgba(0,212,255,0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-top: 18px;
+        }
+
+        .project-shell { display: grid; gap: 14px; }
+        .project-create, .project-list-panel, .project-detail-panel {
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(0,212,255,0.12);
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .project-create-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1.5fr 150px auto;
+            gap: 10px;
+            align-items: start;
+        }
+        .project-workspace {
+            display: grid;
+            grid-template-columns: minmax(260px, 360px) 1fr;
+            gap: 14px;
+            min-height: 420px;
+        }
+        .project-panel-title {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .project-list { display: grid; gap: 10px; }
+        .project-card {
+            border: 1px solid rgba(0,212,255,0.12);
+            border-radius: 12px;
+            background: rgba(10,10,18,0.72);
+            padding: 13px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .project-card:hover, .project-card.active {
+            border-color: rgba(0,212,255,0.4);
+            background: rgba(0,212,255,0.08);
+        }
+        .project-card-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+        .project-card-desc { color: rgba(255,255,255,0.48); font-size: 12px; line-height: 1.5; margin-bottom: 8px; }
+        .project-card-meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.68);
+        }
+        .status-planning { color: #00d4ff; background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.25); }
+        .status-active { color: #52c41a; background: rgba(82,196,26,0.12); border-color: rgba(82,196,26,0.25); }
+        .status-paused { color: #f6c343; background: rgba(246,195,67,0.12); border-color: rgba(246,195,67,0.25); }
+        .status-done { color: #b7a6ff; background: rgba(183,166,255,0.12); border-color: rgba(183,166,255,0.25); }
+        .project-muted { color: rgba(255,255,255,0.42); font-size: 13px; line-height: 1.6; }
+        .project-detail-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: flex-start;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 14px;
+            margin-bottom: 14px;
+        }
+        .project-detail-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .project-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .project-section {
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(10,10,18,0.45);
+        }
+        .project-section-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.76); margin-bottom: 10px; }
+        .project-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+        }
+        .project-row:first-child { border-top: none; }
+        .project-row-main { min-width: 0; }
+        .project-row-title { color: #fff; margin-bottom: 4px; word-break: break-word; }
+        .project-row-sub { color: rgba(255,255,255,0.42); font-size: 12px; }
+        .project-mini-form { display: grid; grid-template-columns: 1fr 120px 120px auto; gap: 8px; margin-top: 12px; }
+        .project-member-form { grid-template-columns: 1fr 1fr auto; }
+        .project-empty {
+            min-height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: rgba(255,255,255,0.42);
+            line-height: 1.6;
+        }
+        @media (max-width: 900px) {
+            .project-create-grid, .project-workspace, .project-sections, .project-mini-form, .project-member-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<style>
+        /* 动态光子粒子Canvas */
+        #photon-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
+    <canvas id="photon-canvas"></canvas>
+
+    <script>
+    function isHomePage() {
+            return document.getElementById('home').style.display === 'block';
+        }
+
+        // 光子系统
+        (function() {
+            const canvas = document.getElementById('photon-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            let mouseX = 0, mouseY = 0;
+            let targetX = 0, targetY = 0;
+
+            const colors = {
+                positive: '#52c41a',
+                negative: '#ff4d4f',
+                neutral: '#1890ff',
+                default: '#00d4ff'
+            };
+            const counts = { positive: 0, negative: 0, neutral: 0 };
+            let allData = []; // 保存全部数据用于悬停预览
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            // 光子类
+            class Photon {
+                constructor(sentiment = 'default') {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.originX = this.x;  // 原始位置
+                    this.originY = this.y;
+                    this.vx = (Math.random() - 0.5) * 0.3;
+                    this.vy = (Math.random() - 0.5) * 0.3;
+                    this.baseSize = 1.5 + Math.random() * 2.5;
+                    this.size = this.baseSize;
+                    this.color = colors[sentiment] || colors.default;
+                    this.sentiment = sentiment;
+                    // 缓慢摆动
+                    this.wobblePhase = Math.random() * Math.PI * 2;
+                    this.wobbleSpeed = 0.005 + Math.random() * 0.01;
+                    this.wobbleAmp = 0.2 + Math.random() * 0.3;
+                }
+                update(mx, my) {
+                    // 基础缓慢运动
+                    this.x += this.vx + Math.sin(this.wobblePhase) * this.wobbleAmp;
+                    this.y += this.vy + Math.cos(this.wobblePhase) * this.wobbleAmp;
+                    this.wobblePhase += this.wobbleSpeed;
+
+                    // 边界循环
+                    if (this.x < 0) this.x = canvas.width;
+                    if (this.x > canvas.width) this.x = 0;
+                    if (this.y < 0) this.y = canvas.height;
+                    if (this.y > canvas.height) this.y = 0;
+
+                    // 鼠标聚集/散开效果
+                    const dx = mx - this.x;
+                    const dy = my - this.y;
+                    const distToMouse = Math.sqrt(dx * dx + dy * dy);
+                    const radius = 150; // 影响半径
+
+                    if (distToMouse < radius) {
+                        // 靠近鼠标时被吸引
+                        const force = (radius - distToMouse) / radius;
+                        this.x += dx * force * 0.08;
+                        this.y += dy * force * 0.08;
+                        this.size = this.baseSize * (1 + force * 1.5); // 变大
+                    } else if (distToMouse < radius * 2) {
+                        // 稍微远离时稍微散开
+                        const force = (distToMouse - radius) / radius;
+                        this.x -= dx * force * 0.02;
+                        this.y -= dy * force * 0.02;
+                    }
+                }
+                draw() {
+                    // 主体光晕
+                    const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 4);
+                    grad.addColorStop(0, this.color);
+                    grad.addColorStop(0.5, this.color + '66');
+                    grad.addColorStop(1, 'transparent');
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 4, 0, Math.PI * 2);
+                    ctx.fillStyle = grad;
+                    ctx.globalAlpha = 0.4;
+                    ctx.fill();
+
+                    // 核心亮点
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = '#fff';
+                    ctx.globalAlpha = 0.85;
+                    ctx.fill();
+
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            function initParticles(total) {
+                particles = [];
+                const totalNum = total || 60;
+                const posNum = Math.max(3, Math.round(counts.positive / total * totalNum)) || Math.floor(totalNum * 0.3);
+                const negNum = Math.max(3, Math.round(counts.negative / total * totalNum)) || Math.floor(totalNum * 0.2);
+                const neuNum = Math.max(3, Math.round(counts.neutral / total * totalNum)) || Math.floor(totalNum * 0.2);
+                const defNum = totalNum - posNum - negNum - neuNum;
+
+                for (let i = 0; i < posNum; i++) particles.push(new Photon('positive'));
+                for (let i = 0; i < negNum; i++) particles.push(new Photon('negative'));
+                for (let i = 0; i < neuNum; i++) particles.push(new Photon('neutral'));
+                for (let i = 0; i < defNum; i++) particles.push(new Photon('default'));
+            }
+            initParticles(120);
+
+            // 绘制连线
+            function drawConnections() {
+                const maxDist = 120;  // 连线距离阈值
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < maxDist) {
+                            const alpha = (1 - dist / maxDist) * 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = '#ffffff';
+                            ctx.globalAlpha = alpha;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                ctx.globalAlpha = 1;
+            }
+
+            document.addEventListener('mousemove', e => {
+                targetX = e.clientX;
+                targetY = e.clientY;
+            });
+
+            mouseX = targetX = window.innerWidth / 2;
+            mouseY = targetY = window.innerHeight / 2;
+
+            function animate() {
+                // 平滑跟随鼠标
+                mouseX += (targetX - mouseX) * 0.1;
+                mouseY += (targetY - mouseY) * 0.1;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // 更新并绘制连线
+                particles.forEach(p => {
+                    p.update(mouseX, mouseY);
+                });
+                drawConnections();
+
+                // 绘制粒子（在连线上层）
+                particles.forEach(p => p.draw());
+
+                requestAnimationFrame(animate);
+            }
+
+            // 只在首页运行
+            // 根据URL判断是否在首页
+            var isHome = !location.search.includes('sentiment') && !location.search.includes('qa') &&
+                       !location.search.includes('analysis') && !location.search.includes('project') &&
+                       !location.search.includes('docs');
+
+            if (isHome) {
+                initParticles(120);
+                animate();
+            }
+
+            window.updatePhotonStats = function(data) {
+                allData = data;
+                counts.positive = data.filter(d => d.sentiment_label === 'positive').length;
+                counts.negative = data.filter(d => d.sentiment_label === 'negative').length;
+                counts.neutral = data.filter(d => d.sentiment_label === 'neutral').length;
+
+                // 更新右侧悬浮统计
+                
+                // 更新顶部数据看板
+                document.getElementById('dash-pos').textContent = counts.positive;
+                document.getElementById('dash-neg').textContent = counts.negative;
+                document.getElementById('dash-neu').textContent = counts.neutral;
+                document.getElementById('dash-total').textContent = data.length;
+
+                initParticles(Math.min(150, data.length + 30));
+                
+                // 绑定悬停显示数据
+                var popup = document.getElementById('sentiment-popup');
+                document.querySelectorAll('.stat-item[data-type]').forEach(function(item) {
+                    item.addEventListener('mouseenter', function() {
+                        var type = this.dataset.type;
+                        var items = allData.filter(function(d) { return d.sentiment_label === type; }).slice(0, 5);
+                        var listEl = document.getElementById('popup-list');
+                        var titleEl = popup.querySelector('.popup-title');
+                        var titles = {positive:'正面评价',negative:'负面评价',neutral:'中性评价'};
+                        var colors = {positive:'#52c41a',negative:'#ff4d4f',neutral:'#1890ff'};
+                        titleEl.textContent = titles[type];
+                        titleEl.style.color = colors[type];
+                        if (items.length === 0) {
+                            listEl.innerHTML = '<div class="popup-empty">暂无数据</div>';
+                        } else {
+                            listEl.innerHTML = items.map(function(d) {
+                                return '<div class="popup-item" onclick="openDetail(' + d.id + ')"><div class="popup-item-title">' + (d.title||'无标题') + '</div><div class="popup-item-meta">' + (d.platform==='maimai'?'💬 脉脉':'📕 小红书') + ' · ' + (d.publish_time||'') + '</div></div>';
+                            }).join('');
+                        }
+                        popup.style.display = 'block';
+                    });
+                    item.addEventListener('mouseleave', function() {
+                        popup.style.display = 'none';
+                    });
+                });
+            };
+        })();
+    </script>
+    <header class="header">
+        <button onclick="home()" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.35);color:#00d4ff;padding:8px 14px;border-radius:12px;cursor:pointer;font-size:12px;display:none;" id="back-btn">← 返回</button>
+        <div class="logo">雇主品牌管理</div>
+        <div class="header-right">
+            <div class="user-avatar">Z</div>
+        </div>
+    </header>
+    <main class="content">
+        <!-- 首页 -->
+        <div class="page active" id="home">
+            <!-- 数据看板 -->
+            <div style="margin:16px 18px 0;position:relative;">
+                <div class="stats-dashboard" id="stats-dashboard" style="margin:0;">
+                    <div class="stat-item stat-pos" data-type="positive" onclick="goSentiment('positive')">
+                        <span class="stat-val" id="dash-pos" style="color:#52c41a;">0</span>
+                        <span class="stat-lbl">正面</span>
+                    </div>
+                    <div class="stat-item stat-neg" data-type="negative" onclick="goSentiment('negative')">
+                        <span class="stat-val" id="dash-neg" style="color:#ff4d4f;">0</span>
+                        <span class="stat-lbl">负面</span>
+                    </div>
+                    <div class="stat-item stat-neu" data-type="neutral" onclick="goSentiment('neutral')">
+                        <span class="stat-val" id="dash-neu" style="color:#1890ff;">0</span>
+                        <span class="stat-lbl">中性</span>
+                    </div>
+                    <div class="stat-item stat-total" onclick="goSentiment('all')">
+                        <span class="stat-val" id="dash-total" style="color:#00d4ff;">0</span>
+                        <span class="stat-lbl">总计</span>
+                    </div>
+                </div>
+                <div id="sentiment-popup" class="sentiment-popup" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:10px;z-index:100;">
+                    <div class="popup-title">评价</div>
+                    <div class="popup-list" id="popup-list"></div>
+                </div>
+            </div>
+            <h2 style="font-size:15px;margin:18px;color:rgba(255,255,255,0.7);letter-spacing:0.5px;">功能模块</h2>
+            <div class="modules-grid">
+                <a href="?sentiment=1" class="module-card"><div class="module-icon">📊</div><div class="module-name">雇主舆情监控</div><div class="module-desc">监测脉脉、小红书等平台的企业口碑与评价</div><div class="module-status online">● 在线</div></a>
+                <a href="?gen=1" class="module-card"><div class="module-icon">✏️</div><div class="module-name">内容生成</div><div class="module-desc">AI 智能生成雇主品牌宣传内容</div><div class="module-status online">● 在线</div></a>
+                <a href="?comp=1" class="module-card"><div class="module-icon">🔍</div><div class="module-name">竞品招聘调研</div><div class="module-desc">调研竞品公司招聘动态，了解市场竞争力</div><div class="module-status online">● 在线</div></a>
+                <a href="?analysis=1" class="module-card"><div class="module-icon">📈</div><div class="module-name">雇主内容分析</div><div class="module-desc">分析雇主品牌内容传播效果</div><div class="module-status online">● 在线</div></a>
+                <a href="?qa=1" class="module-card"><div class="module-icon">🤖</div><div class="module-name">招聘答疑机器人</div><div class="module-desc">AI 招聘助手，解答候选人问题</div><div class="module-status online">● 在线</div></a>
+                <a href="?project=1" class="module-card"><div class="module-icon">📋</div><div class="module-name">项目管理</div><div class="module-desc">管理各类项目和进度</div><div class="module-status online">● 在线</div></a>
+                <a href="?docs=1" class="module-card"><div class="module-icon">📚</div><div class="module-name">资料库</div><div class="module-desc">存储各类学习链接</div><div class="module-status online">● 在线</div></a>
+            </div>
+        </div>
+        <!-- 舆情监控 -->
+        <div class="page" id="sentiment" style="display:none;padding:20px;">
+            <h2 class="page-title">雇主舆情监控</h2>
+            <a href="https://www.xiaohongshu.com/login" target="_blank" class="btn-primary" style="display:inline-block;text-decoration:none;">🔐 登录小红书</a>
+            <div class="iframe-container">
+                <iframe id="sentiment-frame" src="/static/index.html" style="width:100%;height:calc(100vh - 210px);border:none;background:transparent;"></iframe>
+            </div>
+        </div>
+        <!-- 招聘答疑 -->
+        <div class="page" id="recruitQA" style="display:none;padding:20px;">
+            <h2 class="page-title">招聘答疑机器人</h2>
+            <div class="iframe-container">
+                <iframe id="qa-frame" src="/static/qa_admin.html" style="width:100%;height:calc(100vh - 210px);border:none;background:#050510;"></iframe>
+            </div>
+        </div>
+        <!-- 项目管理 -->
+        <div class="page" id="project" style="display:none;padding:20px;">
+            <h2 class="page-title">项目管理</h2>
+            <div class="project-shell">
+                <section class="project-create">
+                    <div class="project-panel-title">新建项目</div>
+                    <div class="project-create-grid">
+                        <input id="project-title-input" placeholder="项目名称">
+                        <textarea id="project-desc-input" placeholder="项目说明"></textarea>
+                        <select id="project-status-input">
+                            <option value="planning">规划中</option>
+                            <option value="active">进行中</option>
+                            <option value="paused">暂停</option>
+                            <option value="done">已完成</option>
+                        </select>
+                        <button class="btn-primary" onclick="createProject()">创建</button>
+                    </div>
+                </section>
+                <div class="project-workspace">
+                    <section class="project-list-panel">
+                        <div class="project-panel-title">项目列表</div>
+                        <div class="project-list" id="project-list"><div class="project-muted">加载中...</div></div>
+                    </section>
+                    <section class="project-detail-panel" id="project-detail">
+                        <div class="project-empty">选择一个项目查看时间规划和成员</div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <!-- 资料库 -->
+        <div class="page" id="docs" style="display:none;padding:20px;">
+            <h2 class="page-title">资料库</h2>
+            <div style="display:flex;gap:10px;margin-top:15px;margin-bottom:18px;flex-wrap:wrap;">
+                <button onclick="document.getElementById('docs-add-modal').style.display='flex'" class="btn-primary">+ 添加链接</button>
+                <button onclick="loadRecycle()" class="btn-danger">🗑️ 回收站</button>
+                <button onclick="showDocs()" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.35);color:#00d4ff;padding:8px 14px;border-radius:10px;font-size:13px;cursor:pointer;display:none;" id="docs-back-btn">← 返回资料库</button>
+            </div>
+            <div id="docs-list" style="color:rgba(255,255,255,0.45);">加载中...</div>
+        </div>
+        <!-- 添加链接弹窗 -->
+        <div id="docs-add-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3 style="margin-bottom:20px;color:#00d4ff;font-size:18px;">添加链接</h3>
+                <input id="doc-title" placeholder="标题" style="margin-bottom:12px;">
+                <input id="doc-url" placeholder="链接地址" style="margin-bottom:12px;">
+                <input id="doc-summary" placeholder="摘要（可选）" style="margin-bottom:18px;">
+                <div style="display:flex;gap:12px;">
+                    <button onclick="document.getElementById('docs-add-modal').style.display='none'" style="flex:1;background:rgba(0,212,255,0.15);color:#00d4ff;border:none;padding:14px;border-radius:10px;cursor:pointer;font-size:14px;">取消</button>
+                    <button onclick="addDoc()" style="flex:1;background:linear-gradient(135deg,#00d4ff,#8a2be2);color:#fff;border:none;padding:14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">保存</button>
+                </div>
+            </div>
+        </div>
+        <!-- 内容分析 -->
+        <div class="page" id="analysis" style="display:none;padding:20px;">
+            <h2 class="page-title">雇主内容分析</h2>
+            <div class="iframe-container">
+                <iframe id="analysis-frame" src="/static/analysis.html" style="width:100%;height:calc(100vh - 210px);border:none;background:#050510;"></iframe>
+            </div>
+        </div>
+        <!-- 内容生成 -->
+        <div class="page" id="contentGen" style="display:none;padding:20px;">
+            <h2 class="page-title">内容生成</h2>
+            <div class="iframe-container">
+                <iframe id="gen-frame" src="/static/content_gen.html" style="width:100%;height:calc(100vh - 210px);border:none;background:#050510;"></iframe>
+            </div>
+        </div>
+        <!-- 竞品招聘调研 -->
+        <div class="page" id="competitor" style="display:none;padding:20px;">
+            <h2 class="page-title">竞品招聘调研</h2>
+            <div class="iframe-container">
+                <iframe id="comp-frame" src="/static/competitor.html" style="width:100%;height:calc(100vh - 210px);border:none;background:#050510;"></iframe>
+            </div>
+        </div>
+    </main>
+    <!-- 底部导航 -->
+    <div class="tab-bar">
+        <a href="/" class="tab-item active"><span class="tab-icon">🏠</span><span>首页</span></a>
+        <a href="?sentiment=1" class="tab-item"><span class="tab-icon">📊</span><span>舆情</span></a>
+        <a href="?analysis=1" class="tab-item"><span class="tab-icon">📈</span><span>内容</span></a>
+        <a href="?gen=1" class="tab-item"><span class="tab-icon">✏️</span><span>生成</span></a>
+        <a href="?comp=1" class="tab-item"><span class="tab-icon">🔍</span><span>竞品</span></a>
+        <a href="?qa=1" class="tab-item"><span class="tab-icon">🤖</span><span>答疑</span></a>
+        <a href="?project=1" class="tab-item"><span class="tab-icon">📋</span><span>项目</span></a>
+        <a href="?docs=1" class="tab-item"><span class="tab-icon">📚</span><span>资料</span></a>
+    </div>
+    <script>
+        function showModule(id) {
+            document.querySelectorAll('.page').forEach(function(p) { p.style.display = 'none'; });
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'block';
+            document.getElementById('back-btn').style.display = id === 'home' ? 'none' : 'flex';
+            if (id === 'docs') { document.getElementById('docs-back-btn').style.display = 'none'; loadDocs(); }
+            if (id === 'project') { loadProjects(); }
+
+            // 更新tabbar高亮
+            var tabMap = {home:'/', sentiment:'?sentiment=1', recruitQA:'?qa=1', analysis:'?analysis=1', project:'?project=1', docs:'?docs=1', contentGen:'?gen=1', competitor:'?comp=1'};
+            document.querySelectorAll('.tab-item').forEach(function(t) {
+                var href = t.getAttribute('href');
+                if (href === tabMap[id]) t.classList.add('active');
+                else t.classList.remove('active');
+            });
+
+            // 首页显示光子，其他页面关闭
+            if (window.showPhoton) window.showPhoton(id === 'home');
+        }
+        function home() { showModule('home'); window.location.href = '/'; }
+
+        // 打开详情页
+        function openDetail(id) {
+            window.location.href = '?sentiment=1&detail=' + id;
+        }
+
+        function goSentiment(type) {
+            if (type && type !== 'all') {
+                window.location.href = '?sentiment=1&sentiment=' + type;
+            } else {
+                window.location.href = '?sentiment=1';
+            }
+        }
+
+        function loadDocs() {
+            fetch('/api/articles').then(r => r.json()).then(data => {
+                var list = document.getElementById('docs-list');
+                if (!data.length) { list.innerHTML = '暂无资料'; return; }
+                list.innerHTML = data.map(function(a) {
+                    var url = a.content.split('|||')[0].trim();
+                    var summary = a.content.split('|||')[1] || url;
+                    return '<div style="padding:12px;margin-bottom:10px;background:rgba(20,20,30,0.8);border:1px solid rgba(64,224,208,0.2);border-radius:8px;display:flex;justify-content:space-between;align-items:center;"><div><a href="' + url + '" target="_blank" style="color:#40E0D0;text-decoration:none;font-size:14px;">📎 ' + a.title + '</a><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:5px;">' + summary + '</div></div><button onclick="deleteDoc(' + a.id + ')" style="background:rgba(255,107,107,0.2);border:1px solid rgba(255,107,107,0.5);color:#ff6b6b;padding:5px 10px;border-radius:4px;font-size:12px;cursor:pointer;">删除</button></div>';
+                }).join('');
+            });
+        }
+        function deleteDoc(id) {
+            if (!confirm('删除后资料会放入回收站，30天内可恢复，确定删除？')) return;
+            fetch('/api/articles?id=' + id, { method: 'DELETE' }).then(function(r) { return r.json(); }).then(function() { loadDocs(); });
+        }
+        function addDoc() {
+            var title = document.getElementById('doc-title').value.trim();
+            var url = document.getElementById('doc-url').value.trim();
+            var summary = document.getElementById('doc-summary').value.trim();
+            if (!title || !url) { alert('请填写标题和链接'); return; }
+            var content = url + '|||' + summary;
+            fetch('/api/articles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: title, type: 'link', content: content })
+            }).then(function() {
+                document.getElementById('docs-add-modal').style.display = 'none';
+                document.getElementById('doc-title').value = '';
+                document.getElementById('doc-url').value = '';
+                document.getElementById('doc-summary').value = '';
+                loadDocs();
+            });
+        }
+        function loadRecycle() {
+            document.getElementById('docs-back-btn').style.display = 'block';
+            fetch('/api/articles/recycle').then(r => r.json()).then(data => {
+                var list = document.getElementById('docs-list');
+                if (!data.length) { list.innerHTML = '回收站是空的'; return; }
+                list.innerHTML = data.map(function(a) {
+                    var url = a.content.split('|||')[0].trim();
+                    return '<div style="padding:12px;margin-bottom:10px;background:rgba(30,30,30,0.8);border:1px solid rgba(255,107,107,0.3);border-radius:8px;display:flex;justify-content:space-between;align-items:center;"><div><div style="color:#ff6b6b;font-size:14px;">📎 ' + a.title + '</div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:5px;">删除于 ' + a.deleted_time + '</div></div><div style="display:flex;gap:5px;"><button onclick="restoreDoc(' + a.id + ')" style="background:rgba(64,224,208,0.2);border:1px solid rgba(64,224,208,0.5);color:#40E0D0;padding:5px 10px;border-radius:4px;font-size:12px;cursor:pointer;">恢复</button><button onclick="permanentDeleteDoc(' + a.id + ')" style="background:rgba(255,107,107,0.3);border:1px solid rgba(255,107,107,0.5);color:#ff6b6b;padding:5px 10px;border-radius:4px;font-size:12px;cursor:pointer;">彻底删除</button></div></div>';
+                }).join('');
+            });
+        }
+        function restoreDoc(id) {
+            fetch('/api/articles/restore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            }).then(function() { loadRecycle(); });
+        }
+        function permanentDeleteDoc(id) {
+            if (!confirm('彻底删除后无法恢复，确定？')) return;
+            fetch('/api/articles/permanent', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            }).then(function() { loadRecycle(); });
+        }
+        function showDocs() {
+            document.getElementById('docs-back-btn').style.display = 'none';
+            loadDocs();
+        }
+
+        var projectState = { projects: [], activeId: null };
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);
+            });
+        }
+
+        function projectStatusName(status) {
+            return ({planning:'规划中', active:'进行中', paused:'暂停', done:'已完成'}[status] || status || '规划中');
+        }
+
+        function projectStatusClass(status) {
+            return 'status-' + (status || 'planning');
+        }
+
+        function formatProjectDate(value) {
+            if (!value) return '';
+            return String(value).replace('T', ' ').substring(0, 16);
+        }
+
+        function renderProjectList() {
+            var list = document.getElementById('project-list');
+            if (!list) return;
+            if (!projectState.projects.length) {
+                list.innerHTML = '<div class="project-muted">暂无项目，先创建一个雇主品牌项目吧。</div>';
+                return;
+            }
+
+            list.innerHTML = projectState.projects.map(function(p) {
+                var active = Number(projectState.activeId) === Number(p.id) ? ' active' : '';
+                return '<div class="project-card' + active + '" onclick="selectProject(' + p.id + ')">' +
+                    '<div class="project-card-title">' + escapeHtml(p.title) + '</div>' +
+                    '<div class="project-card-desc">' + escapeHtml(p.description || '暂无说明') + '</div>' +
+                    '<div class="project-card-meta">' +
+                    '<span class="status-pill ' + projectStatusClass(p.status) + '">' + projectStatusName(p.status) + '</span>' +
+                    '<span class="project-muted">' + formatProjectDate(p.created_time) + '</span>' +
+                    '</div></div>';
+            }).join('');
+        }
+
+        function loadProjects() {
+            var list = document.getElementById('project-list');
+            if (list) list.innerHTML = '<div class="project-muted">加载中...</div>';
+            fetch('/api/projects').then(function(r) { return r.json(); }).then(function(data) {
+                projectState.projects = Array.isArray(data) ? data : [];
+                if (projectState.projects.length) {
+                    var stillExists = projectState.projects.some(function(p) { return Number(p.id) === Number(projectState.activeId); });
+                    if (!stillExists) projectState.activeId = projectState.projects[0].id;
+                    renderProjectList();
+                    selectProject(projectState.activeId);
+                } else {
+                    renderProjectList();
+                    document.getElementById('project-detail').innerHTML = '<div class="project-empty">创建项目后，可以维护时间规划和成员。</div>';
+                }
+            }).catch(function() {
+                if (list) list.innerHTML = '<div class="project-muted">项目加载失败，请稍后重试。</div>';
+            });
+        }
+
+        function selectProject(id) {
+            projectState.activeId = Number(id);
+            renderProjectList();
+            var detail = document.getElementById('project-detail');
+            detail.innerHTML = '<div class="project-empty">加载项目详情...</div>';
+            fetch('/api/projects/' + encodeURIComponent(id)).then(function(r) { return r.json(); }).then(function(project) {
+                if (project.error) {
+                    detail.innerHTML = '<div class="project-empty">' + escapeHtml(project.error) + '</div>';
+                    return;
+                }
+                renderProjectDetail(project);
+            }).catch(function() {
+                detail.innerHTML = '<div class="project-empty">项目详情加载失败。</div>';
+            });
+        }
+
+        function renderProjectDetail(project) {
+            var timelines = project.timelines || [];
+            var members = project.members || [];
+            var timelineHtml = timelines.length ? timelines.map(function(t) {
+                return '<div class="project-row"><div class="project-row-main">' +
+                    '<div class="project-row-title">' + escapeHtml(t.task || '未命名任务') + '</div>' +
+                    '<div class="project-row-sub">' + escapeHtml(t.start_date || '未设开始') + ' 至 ' + escapeHtml(t.end_date || '未设结束') + '</div>' +
+                    '</div><button class="btn-danger" onclick="deleteProjectTimeline(' + t.id + ')">删除</button></div>';
+            }).join('') : '<div class="project-muted">还没有时间规划。</div>';
+
+            var memberHtml = members.length ? members.map(function(m) {
+                return '<div class="project-row"><div class="project-row-main">' +
+                    '<div class="project-row-title">' + escapeHtml(m.name || '未命名成员') + '</div>' +
+                    '<div class="project-row-sub">' + escapeHtml(m.role || '未填写角色') + '</div>' +
+                    '</div><button class="btn-danger" onclick="deleteProjectMember(' + m.id + ')">删除</button></div>';
+            }).join('') : '<div class="project-muted">还没有项目成员。</div>';
+
+            document.getElementById('project-detail').innerHTML =
+                '<div class="project-detail-head">' +
+                '<div><div class="project-detail-title">' + escapeHtml(project.title) + '</div>' +
+                '<div class="project-muted">' + escapeHtml(project.description || '暂无说明') + '</div></div>' +
+                '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">' +
+                '<span class="status-pill ' + projectStatusClass(project.status) + '">' + projectStatusName(project.status) + '</span>' +
+                '<button class="btn-danger" onclick="deleteProject(' + project.id + ')">删除项目</button></div></div>' +
+                '<div class="project-sections">' +
+                '<div class="project-section"><div class="project-section-title">时间规划</div>' + timelineHtml +
+                '<div class="project-mini-form"><input id="timeline-task-input" placeholder="任务"><input id="timeline-start-input" type="date"><input id="timeline-end-input" type="date"><button class="btn-primary" onclick="addProjectTimeline()">添加</button></div></div>' +
+                '<div class="project-section"><div class="project-section-title">项目成员</div>' + memberHtml +
+                '<div class="project-mini-form project-member-form"><input id="member-name-input" placeholder="姓名"><input id="member-role-input" placeholder="角色"><button class="btn-primary" onclick="addProjectMember()">添加</button></div></div>' +
+                '</div>';
+        }
+
+        function createProject() {
+            var titleEl = document.getElementById('project-title-input');
+            var descEl = document.getElementById('project-desc-input');
+            var statusEl = document.getElementById('project-status-input');
+            var title = titleEl.value.trim();
+            if (!title) { alert('请填写项目名称'); return; }
+
+            fetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: title, description: descEl.value.trim(), status: statusEl.value })
+            }).then(function(r) { return r.json(); }).then(function() {
+                titleEl.value = '';
+                descEl.value = '';
+                statusEl.value = 'planning';
+                projectState.activeId = null;
+                loadProjects();
+            });
+        }
+
+        function deleteProject(id) {
+            if (!confirm('确定删除这个项目？')) return;
+            fetch('/api/projects?id=' + encodeURIComponent(id), { method: 'DELETE' }).then(function() {
+                projectState.activeId = null;
+                loadProjects();
+            });
+        }
+
+        function addProjectTimeline() {
+            if (!projectState.activeId) return;
+            var taskEl = document.getElementById('timeline-task-input');
+            var startEl = document.getElementById('timeline-start-input');
+            var endEl = document.getElementById('timeline-end-input');
+            var task = taskEl.value.trim();
+            if (!task) { alert('请填写任务'); return; }
+            fetch('/api/projects/' + projectState.activeId + '/timelines', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task: task, start_date: startEl.value, end_date: endEl.value })
+            }).then(function() { selectProject(projectState.activeId); });
+        }
+
+        function addProjectMember() {
+            if (!projectState.activeId) return;
+            var nameEl = document.getElementById('member-name-input');
+            var roleEl = document.getElementById('member-role-input');
+            var name = nameEl.value.trim();
+            if (!name) { alert('请填写成员姓名'); return; }
+            fetch('/api/projects/' + projectState.activeId + '/members', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, role: roleEl.value.trim() })
+            }).then(function() { selectProject(projectState.activeId); });
+        }
+
+        function deleteProjectTimeline(id) {
+            fetch('/api/projects/timelines/' + encodeURIComponent(id), { method: 'DELETE' }).then(function() {
+                selectProject(projectState.activeId);
+            });
+        }
+
+        function deleteProjectMember(id) {
+            fetch('/api/projects/members/' + encodeURIComponent(id), { method: 'DELETE' }).then(function() {
+                selectProject(projectState.activeId);
+            });
+        }
+        window.showModule = showModule;
+        // 初始化 - 根据当前页面决定是否显示光子
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取当前页面ID
+            var params = new URLSearchParams(location.search);
+            var currentId = 'home';
+            if (params.get('sentiment') === '1') currentId = 'sentiment';
+            else if (params.get('qa') === '1') currentId = 'recruitQA';
+            else if (params.get('analysis') === '1') currentId = 'analysis';
+            else if (params.get('project') === '1') currentId = 'project';
+            else if (params.get('docs') === '1') currentId = 'docs';
+            else if (params.get('gen') === '1') currentId = 'contentGen';
+            else if (params.get('comp') === '1') currentId = 'competitor';
+
+            // 检查是否在首页
+            if (currentId === 'home') {
+                fetch('/api/data?limit=200').then(r => r.json()).then(function(data) {
+                    if (data && data.length > 0 && window.updatePhotonStats) {
+                        window.updatePhotonStats(data);
+                    }
+                }).catch(function(){});
+            } else {
+                showModule(currentId);
+            }
+        });
+    </script>
+</body>
+</html>
